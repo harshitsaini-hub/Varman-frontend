@@ -1,5 +1,5 @@
 {
-  "name": "amor-frontend",
+  "name": "varman-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "axios": "^1.16.0",
+    "lucide-react": "^1.20.0",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

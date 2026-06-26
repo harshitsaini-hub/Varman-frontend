@@ -1,47 +1,81 @@
-import { useState } from "react";
-import axios from "axios";
+import React, { useContext } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, AuthContext } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
+import Sidebar from './components/Sidebar';
+import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
+import UploadPage from './pages/UploadPage';
+import GalleryPage from './pages/GalleryPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
-function App() {
-  const [file, setFile] = useState(null);
-
-  const handleUpload = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleSend = async () => {
-    if (!file) {
-      alert("Select a file first");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      console.log("Response:", response.data);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useContext(AuthContext);
+  if (loading) return <div className="app-container items-center justify-center">Verifying Authentication...</div>;
+  if (!user) return <Navigate to="/login" replace />;
   return (
-    <div>
-      <h1>AMOR Phase 3</h1>
-
-      <input type="file" onChange={handleUpload} />
-      <button onClick={handleSend}>Upload Image</button>
+    <div className="app-container">
+      <Sidebar />
+      {children}
     </div>
   );
-}
+};
+
+const AppRoutes = () => {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return <div className="app-container items-center justify-center">Initializing System...</div>;
+  }
+
+  return (
+    <Routes>
+      <Route path="/login" element={<AuthPage />} />
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
+      <Route path="/gallery" element={<ProtectedRoute><GalleryPage /></ProtectedRoute>} />
+      
+      {/* Default route */}
+      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+    </Routes>
+  );
+};
+
+const App = () => {
+  return (
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+          <Toaster 
+            position="bottom-right" 
+            toastOptions={{
+              style: {
+                background: 'var(--bg-panel)',
+                color: 'var(--text-main)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                fontSize: '0.9rem',
+              },
+              success: {
+                iconTheme: {
+                  primary: 'var(--accent-cyan)',
+                  secondary: 'var(--bg-dark)',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: 'var(--danger)',
+                  secondary: 'var(--bg-dark)',
+                },
+              },
+            }} 
+          />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
+  );
+};
 
 export default App;
