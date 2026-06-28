@@ -9,9 +9,9 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const res = await api.get('/api/auth/me');
+      const res = await api.get('/auth/me');
       setUser(res.data);
-    } catch (error) {
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
     formData.append('username', email); // FastAPI OAuth2 uses 'username'
     formData.append('password', password);
 
-    const res = await api.post('/api/auth/login', formData, {
+    const res = await api.post('/auth/login', formData, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
     
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (email, password, displayName) => {
-    await api.post('/api/auth/register', {
+    await api.post('/auth/register', {
       email,
       password,
       display_name: displayName
@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('varman_token');
+    sessionStorage.removeItem('varman_upload_logs');
     setUser(null);
   };
 

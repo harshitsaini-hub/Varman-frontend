@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VARMAN - Deepfake Defense</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Metrophobic&amp;family=Space+Grotesk:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error": "#690005",
+                    "primary-fixed-dim": "#00dbe9",
+                    "secondary": "#a0c9ff",
+                    "on-primary-fixed": "#002022",
+                    "on-tertiary-fixed-variant": "#3b4569",
+                    "surface-container": "#1d1f2a",
+                    "error": "#ffb4ab",
+                    "background": "#11131d",
+                    "outline": "#849495",
+                    "surface-container-low": "#191b26",
+                    "on-tertiary": "#242f51",
+                    "on-secondary-fixed-variant": "#00497f",
+                    "on-secondary": "#00325a",
+                    "surface-tint": "#00dbe9",
+                    "surface-bright": "#373844",
+                    "secondary-fixed": "#d2e4ff",
+                    "surface-dim": "#11131d",
+                    "tertiary-fixed-dim": "#bbc5ef",
+                    "primary-container": "#00f0ff",
+                    "on-surface-variant": "#b9cacb",
+                    "on-background": "#e1e1f0",
+                    "secondary-container": "#046dba",
+                    "inverse-primary": "#006970",
+                    "surface-variant": "#323440",
+                    "primary": "#dbfcff",
+                    "on-primary-container": "#006970",
+                    "surface-container-highest": "#323440",
+                    "surface-container-high": "#282934",
+                    "on-tertiary-container": "#535d82",
+                    "primary-fixed": "#7df4ff",
+                    "surface-container-lowest": "#0c0e18",
+                    "on-error-container": "#ffdad6",
+                    "surface": "#11131d",
+                    "error-container": "#93000a",
+                    "on-surface": "#e1e1f0",
+                    "tertiary-fixed": "#dbe1ff",
+                    "tertiary": "#f6f5ff",
+                    "on-primary": "#00363a",
+                    "outline-variant": "#3b494b",
+                    "on-secondary-container": "#e2edff",
+                    "tertiary-container": "#cfd8ff",
+                    "inverse-surface": "#e1e1f0",
+                    "secondary-fixed-dim": "#a0c9ff",
+                    "on-tertiary-fixed": "#0e1a3b",
+                    "on-secondary-fixed": "#001c37",
+                    "inverse-on-surface": "#2e303b",
+                    "on-primary-fixed-variant": "#004f54"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin": "24px",
+                    "gutter": "16px",
+                    "container-max": "1440px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "code-snippet": [
+                            "JetBrains Mono"
+                    ],
+                    "headline-lg-mobile": [
+                            "IBM Plex Sans"
+                    ],
+                    "body-lg": [
+                            "Metrophobic"
+                    ],
+                    "label-caps": [
+                            "Space Grotesk"
+                    ],
+                    "body-sm": [
+                            "Metrophobic"
+                    ],
+                    "headline-md": [
+                            "IBM Plex Sans"
+                    ],
+                    "headline-lg": [
+                            "IBM Plex Sans"
+                    ]
+            },
+            "fontSize": {
+                    "code-snippet": [
+                            "13px",
+                            {
+                                    "lineHeight": "18px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-caps": [
+                            "11px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.1em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-sm": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        .cyber-grid {
+            background-image: 
+                linear-gradient(to right, rgba(0, 219, 233, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 219, 233, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        .neon-glow {
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-lg relative overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<div class="fixed inset-0 cyber-grid pointer-events-none z-0"></div>
+<div class="fixed top-[-20%] left-[-10%] w-[50vw] h-[50vw] bg-secondary-container/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
+<div class="fixed bottom-[-20%] right-[-10%] w-[40vw] h-[40vw] bg-primary-container/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+<nav class="bg-surface/60 backdrop-blur-2xl fixed top-0 w-full z-50 border-b border-primary/10 shadow-[0_0_15px_rgba(0,219,233,0.1)]">
+<div class="flex justify-between items-center px-margin h-16 w-full max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<span class="font-headline-lg text-headline-lg font-bold text-primary tracking-tighter uppercase">VARMAN</span>
+<div class="hidden md:flex items-center gap-6 ml-8">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300 active:scale-95 transition-transform font-label-caps text-label-caps" href="#">Dashboard</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300 active:scale-95 transition-transform font-label-caps text-label-caps" href="#">Telemetry</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300 active:scale-95 transition-transform font-label-caps text-label-caps" href="#">Reports</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300 active:scale-95 transition-transform font-label-caps text-label-caps" href="#">Shields</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-primary hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="text-primary hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-primary/20 overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-primary">person</span>
+</div>
+</div>
+</div>
+</nav>
+<main class="flex-grow flex flex-col relative z-10 pt-16">
+<section class="max-w-container-max mx-auto px-margin pt-32 pb-24 grid grid-cols-1 md:grid-cols-12 gap-gutter items-center min-h-[819px]">
+<div class="md:col-span-6 flex flex-col gap-6">
+<div class="inline-flex items-center gap-2 border border-primary/30 bg-primary/5 rounded-full px-4 py-1.5 w-fit">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-code-snippet text-code-snippet text-primary uppercase tracking-widest text-[10px]">System Core Online // v4.2.1</span>
+</div>
+<h1 class="font-headline-lg text-[48px] leading-[1.1] md:text-[64px] font-bold text-primary tracking-tighter uppercase neon-glow">
+                    Unbreakable<br/>
+<span class="text-on-background">Synthetic Media Shield</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg mt-4">
+                    Deploy hyper-technical countermeasures against adversarial generation. Varman isolates, disrupts, and neutralizes deepfake generation pipelines before visual payload compilation.
+                </p>
+<div class="flex items-center gap-4 mt-8">
+<button class="bg-primary-container text-on-primary-container font-label-caps text-label-caps px-8 py-4 rounded hover:bg-primary-fixed transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">security</span>
+                        DEPLOY PROTECTION
+                    </button>
+<button class="border border-outline/30 text-on-surface hover:text-primary hover:border-primary/50 font-label-caps text-label-caps px-8 py-4 rounded transition-all duration-300 bg-surface/30 backdrop-blur-md">
+                        VIEW TELEMETRY
+                    </button>
+</div>
+<div class="flex items-center gap-6 mt-12 pt-8 border-t border-primary/10">
+<div class="flex flex-col">
+<span class="font-code-snippet text-code-snippet text-primary text-xl">99.98%</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">Efficacy Rate</span>
+</div>
+<div class="w-px h-8 bg-primary/20"></div>
+<div class="flex flex-col">
+<span class="font-code-snippet text-code-snippet text-primary text-xl">&lt; 12ms</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">Latency Overhead</span>
+</div>
+<div class="w-px h-8 bg-primary/20"></div>
+<div class="flex flex-col">
+<span class="font-code-snippet text-code-snippet text-primary text-xl">SHA-256</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">Verification Protocol</span>
+</div>
+</div>
+</div>
+<div class="md:col-span-6 relative h-[500px] w-full mt-12 md:mt-0">
+<div class="absolute inset-0 bg-surface-container/40 backdrop-blur-3xl rounded-xl border border-primary/15 overflow-hidden flex items-center justify-center shadow-[inset_0_0_60px_rgba(0,219,233,0.05)]">
+<img class="w-full h-full object-cover opacity-80 mix-blend-screen" data-alt="A highly complex, hyper-realistic 3D rendering of an abstract cyber security shield. It is composed of glowing cyan geometric vectors, intricate wireframes, and luminous data nodes intersecting in a vast, dark, cold midnight environment. The aesthetic is heavily technical, precise, and evokes a high-performance computing interface in a futuristic server room, featuring glassmorphism elements and intense blue light refractions." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCUGg85hHcQY55VYIeQid3FLv4wSg5WtGhBt4IFispeyys3yhqUlrGOMXvVjf1WA86ODCVeThNap_YHifBbZ8X1pH7IEm6RKheKdmLQWaFyOR-qfomtTZtmZF1Ru-T_n1PL_E1RSp_Fkv1bk-KGgzrs-qS50x_qwRnLuYaXI23dGvyNb2eAN3xRgMvjf9ngxt4Byc1WE6PvRI7yscg_mP2bDi4wNsKNzpxSgdIbYmXbf4pggE763gcD8OyT6bwWM0VRWlE4y_bsPs"/>
+<div class="absolute bottom-4 right-4 bg-surface/80 backdrop-blur-md border border-primary/30 p-3 rounded flex flex-col gap-1">
+<span class="font-code-snippet text-[10px] text-primary">&gt; active_nodes: 10,482</span>
+<span class="font-code-snippet text-[10px] text-primary">&gt; perturbation_status: stable</span>
+</div>
+</div>
+</div>
+</section>
+<section class="max-w-container-max mx-auto px-margin py-24 w-full border-t border-primary/10">
+<div class="mb-12 flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-primary tracking-widest">DEFENSE ARCHITECTURE</span>
+<h2 class="font-headline-md text-headline-md text-on-background uppercase">Core Disruption Vectors</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="bg-surface-container/60 backdrop-blur-xl border border-primary/15 rounded-lg p-8 relative overflow-hidden group hover:border-primary/40 hover:bg-surface-container-high transition-all duration-500">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary-container to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-12 h-12 rounded bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">graphic_eq</span>
+</div>
+<h3 class="font-headline-md text-xl text-on-background mb-3">Adversarial Perturbations</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">
+                        Injects mathematically calculated imperceptible noise overlays into source media, fundamentally destabilizing facial recognition and generative mapping algorithms during deepfake compilation attempts.
+                    </p>
+<div class="mt-auto bg-surface/50 border border-outline/10 p-3 rounded flex flex-col font-code-snippet text-[11px] text-secondary">
+<span>// NOISE_FLOOR_INJECT</span>
+<span>var amplitude = calc_dev(src);</span>
+<span>apply_matrix(mask, amplitude);</span>
+</div>
+</div>
+<div class="bg-surface-container/60 backdrop-blur-xl border border-primary/15 rounded-lg p-8 relative overflow-hidden group hover:border-primary/40 hover:bg-surface-container-high transition-all duration-500">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-secondary-container to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-12 h-12 rounded bg-secondary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-secondary text-3xl" style="font-variation-settings: 'FILL' 1;">fingerprint</span>
+</div>
+<h3 class="font-headline-md text-xl text-on-background mb-3">DWT-DCT Watermarking</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">
+                        Embeds persistent, cryptographic signatures within the frequency domain (Discrete Wavelet Transform and Discrete Cosine Transform). Survives compression, cropping, and extensive digital manipulation.
+                    </p>
+<div class="mt-auto bg-surface/50 border border-outline/10 p-3 rounded flex flex-col font-code-snippet text-[11px] text-secondary">
+<span>// FREQ_DOMAIN_LOCK</span>
+<span>sig_hash = generate_sha256(uid);</span>
+<span>embed_dwt_layer(media, sig_hash);</span>
+</div>
+</div>
+<div class="bg-surface-container/60 backdrop-blur-xl border border-primary/15 rounded-lg p-8 relative overflow-hidden group hover:border-primary/40 hover:bg-surface-container-high transition-all duration-500">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary-container to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-12 h-12 rounded bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">hub</span>
+</div>
+<h3 class="font-headline-md text-xl text-on-background mb-3">Surrogate Ensemble Resistance</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">
+                        Utilizes a dynamic mesh of surrogate models to predict and counter cross-model attacks. Ensures robustness regardless of the specific architecture (GAN, Diffusion) employed by the threat actor.
+                    </p>
+<div class="mt-auto bg-surface/50 border border-outline/10 p-3 rounded flex flex-col font-code-snippet text-[11px] text-secondary">
+<span>// ENSEMBLE_VALIDATE</span>
+<span>threat_vec = monitor_api_calls();</span>
+<span>if (threat_vec.prob &gt; 0.89) {</span>
+<span class="text-primary ml-4">execute_disruption();</span>
+<span>}</span>
+</div>
+</div>
+</div>
+</section>
+<section class="max-w-container-max mx-auto px-margin py-32 w-full grid grid-cols-1 md:grid-cols-2 gap-gutter relative">
+<div class="absolute inset-0 bg-gradient-to-t from-background via-surface-container/20 to-transparent pointer-events-none z-0"></div>
+<a class="relative z-10 bg-surface-container-high border border-outline/20 p-16 rounded-xl flex flex-col items-center justify-center text-center hover:border-primary/50 hover:bg-surface-container-highest transition-all duration-300 group overflow-hidden" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 rounded-full bg-surface border border-outline/30 flex items-center justify-center mb-6 group-hover:border-primary/50 group-hover:shadow-[0_0_30px_rgba(0,240,255,0.2)] transition-all">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-primary transition-colors">login</span>
+</div>
+<h3 class="font-headline-lg text-[28px] font-bold text-on-background uppercase tracking-tight mb-2">Establish Link</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant font-code-snippet">Authenticate to secure console</p>
+<div class="mt-8 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+<span class="font-label-caps text-label-caps text-primary border-b border-primary/50 pb-1">INITIATE LOGIN SEQUENCE -&gt;</span>
+</div>
+</a>
+<a class="relative z-10 bg-surface-container-high border border-outline/20 p-16 rounded-xl flex flex-col items-center justify-center text-center hover:border-secondary-container/50 hover:bg-surface-container-highest transition-all duration-300 group overflow-hidden" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 rounded-full bg-surface border border-outline/30 flex items-center justify-center mb-6 group-hover:border-secondary/50 group-hover:shadow-[0_0_30px_rgba(160,201,255,0.2)] transition-all">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-secondary transition-colors">person_add</span>
+</div>
+<h3 class="font-headline-lg text-[28px] font-bold text-on-background uppercase tracking-tight mb-2">Join Defense Core</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant font-code-snippet">Request new node clearance</p>
+<div class="mt-8 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+<span class="font-label-caps text-label-caps text-secondary border-b border-secondary/50 pb-1">REQUEST CREDENTIALS -&gt;</span>
+</div>
+</a>
+</section>
+</main>
+<footer class="border-t border-primary/10 bg-surface/80 py-8 relative z-10">
+<div class="max-w-container-max mx-auto px-margin flex flex-col md:flex-row justify-between items-center gap-4">
+<span class="font-code-snippet text-[10px] text-on-surface-variant uppercase">© 2024 VARMAN ARCHITECTURE. ALL PROTOCOLS ENFORCED.</span>
+<div class="flex gap-6">
+<a class="font-code-snippet text-[10px] text-on-surface-variant hover:text-primary transition-colors" href="#">SYS_STATUS</a>
+<a class="font-code-snippet text-[10px] text-on-surface-variant hover:text-primary transition-colors" href="#">DOCS</a>
+<a class="font-code-snippet text-[10px] text-on-surface-variant hover:text-primary transition-colors" href="#">TERMS</a>
+</div>
+</div>
+</footer>
+</body></html>

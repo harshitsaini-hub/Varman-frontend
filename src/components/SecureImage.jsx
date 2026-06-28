@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ImageIcon, AlertCircle } from 'lucide-react';
 import api from '../api';
 
-const SecureImage = ({ src, alt, className, style, fallbackIconSize = 48, ...props }) => {
+const SecureImage = ({ src, alt, className, style, ...props }) => {
   const [objectUrl, setObjectUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
