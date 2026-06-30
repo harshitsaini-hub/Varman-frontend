@@ -11,6 +11,9 @@ const GalleryPage = () => {
   const [sortBy, setSortBy] = useState('DATE_DESC'); // 'DATE_DESC' | 'DATE_ASC' | 'SIZE_DESC'
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
+  const [showGuide, setShowGuide] = useState(() => {
+    return sessionStorage.getItem('varman_guide_gallery') !== 'dismissed';
+  });
 
   const fetchImages = async () => {
     try {
@@ -92,40 +95,84 @@ const GalleryPage = () => {
   return (
     <div className="flex-1 p-6 md:p-8 overflow-y-auto">
       {/* Header Section */}
-      <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-neon-purple/20 pb-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl text-neon-cyan mb-2 font-bold tracking-wider uppercase font-headline text-gradient">
-            Protected Asset Vault
-          </h1>
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-2xl md:text-3xl text-neon-cyan font-bold tracking-wider uppercase font-headline text-gradient">
+              Protected Asset Vault
+            </h1>
+            {!showGuide && (
+              <button 
+                onClick={() => {
+                  sessionStorage.removeItem('varman_guide_gallery');
+                  setShowGuide(true);
+                }}
+                className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 border border-neon-cyan/20 px-2 py-0.5 rounded text-[9px] font-code-snippet uppercase tracking-widest bg-black/20"
+              >
+                <span className="material-symbols-outlined text-[10px]">help</span>
+                Show Guide
+              </button>
+            )}
+          </div>
           <p className="text-xs text-neon-cyan/70 max-w-2xl tracking-wide uppercase font-code-snippet">
             ENCRYPTED GALLERY OF PERTURBATED MEDIA. ACCESS REQUIRES CLEARANCE LEVEL ALPHA-9.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="glass-panel px-3 py-1.5 flex items-center gap-2 border-neon-cyan/50 rounded-none">
+          <div className="glass-panel px-3 py-1.5 flex items-center gap-2 border-neon-purple/30 rounded shadow-[0_0_15px_rgba(189,0,255,0.05)]">
             <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_5px_#00f0ff]"></span>
-            <span className="text-neon-cyan text-[10px] font-bold tracking-widest font-code-snippet">SYS_STABLE</span>
+            <span className="text-[10px] font-bold tracking-widest font-code-snippet text-gradient">System Stable</span>
           </div>
-          <div className="glass-panel px-3 py-1.5 flex items-center gap-2 border-neon-cyan/20 rounded-none">
-            <span className="text-neon-cyan/70 text-[10px] tracking-widest font-code-snippet">
-              {images.length}_ASSETS
+          <div className="glass-panel px-3 py-1.5 flex items-center gap-2 border-neon-purple/20 rounded">
+            <span className="text-neon-purple/70 text-[10px] tracking-widest font-code-snippet">
+              {images.length} Assets
             </span>
           </div>
         </div>
       </header>
 
+      {/* Educational Operational Guide */}
+      {showGuide && (
+        <div className="glass-panel p-4 border border-neon-cyan/20 rounded-lg bg-surface-container-lowest/30 mb-6">
+          <div className="flex justify-between items-center gap-4 mb-3 w-full">
+            <h4 className="font-code-snippet text-xs text-neon-cyan uppercase tracking-widest flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px]">info</span>
+              Asset Vault Manual
+            </h4>
+            <button 
+              onClick={() => {
+                sessionStorage.setItem('varman_guide_gallery', 'dismissed');
+                setShowGuide(false);
+              }}
+              className="text-on-surface-variant hover:text-neon-red transition-colors font-code-snippet text-[10px] uppercase tracking-widest flex items-center gap-1 border border-neon-cyan/10 px-2 py-0.5 rounded bg-black/20 shrink-0"
+            >
+              <span className="material-symbols-outlined text-[10px]">close</span>
+              Dismiss
+            </button>
+          </div>
+          <p className="text-[11px] text-on-surface-variant leading-relaxed mb-2">
+            This page represents your encrypted storage network. Understanding how to retrieve your assets is vital.
+          </p>
+          <ul className="text-[11px] text-on-surface-variant leading-relaxed space-y-1 list-disc pl-4">
+            <li><strong>Secured Status:</strong> Images marked as "Secured" have successfully completed PGD optimization, meaning they are fully protected against scraper tools.</li>
+            <li><strong>Action Commands:</strong> Hover over any item to download its protected copy. Use the download copy for all your public profile uploads.</li>
+            <li><strong>Search and Filter:</strong> Use filters to quickly view only successfully secured assets or trace files by name.</li>
+          </ul>
+        </div>
+      )}
+
       {images.length === 0 ? (
-        <div className="glass-panel text-center p-12 max-w-lg mx-auto mt-12 flex flex-col items-center">
-          <span className="material-symbols-outlined text-[64px] text-neon-cyan/80 mb-4 animate-pulse">folder_open</span>
+        <div className="glass-panel text-center p-12 max-w-lg mx-auto mt-12 flex flex-col items-center shadow-[0_0_30px_rgba(0,240,255,0.1)] border-neon-cyan/40">
+          <span className="material-symbols-outlined text-[64px] mb-4 animate-pulse text-gradient drop-shadow-[0_0_10px_rgba(189,0,255,0.5)]">folder_open</span>
           <h3 className="mb-2 text-on-surface font-semibold tracking-wider font-code-snippet uppercase text-sm">Gallery Vault Empty</h3>
           <p className="text-xs text-on-surface-variant mb-6 leading-relaxed">
             No secured assets found. Upload an image to apply adversarial shielding and store it here.
           </p>
           <Link 
             to="/upload" 
-            className="bg-neon-cyan/20 text-neon-cyan border border-neon-cyan py-2.5 px-6 hover:bg-neon-cyan hover:text-background transition-colors flex items-center justify-center gap-2 text-xs font-bold tracking-widest uppercase font-code-snippet"
+            className="text-gradient hover:opacity-80 transition-all flex items-center justify-center gap-2 text-xs font-bold tracking-widest uppercase font-code-snippet py-2.5 px-4"
           >
-            <span className="material-symbols-outlined text-[16px]">upload_file</span>
+            <span className="material-symbols-outlined text-[16px] text-neon-purple">upload_file</span>
             Upload Image
           </Link>
         </div>
@@ -173,9 +220,9 @@ const GalleryPage = () => {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="bg-background/85 border border-neon-cyan/40 text-neon-cyan px-3 py-1 text-[10px] tracking-widest focus:outline-none focus:border-neon-cyan cursor-pointer rounded-none font-code-snippet"
                 >
-                  <option value="DATE_DESC">DATE_DESC</option>
-                  <option value="DATE_ASC">DATE_ASC</option>
-                  <option value="SIZE_DESC">SIZE_DESC</option>
+                  <option value="DATE_DESC">Date Descending</option>
+                  <option value="DATE_ASC">Date Ascending</option>
+                  <option value="SIZE_DESC">Size Descending</option>
                 </select>
               </div>
             </div>
@@ -231,7 +278,7 @@ const GalleryPage = () => {
                       <div className={`border p-2 flex flex-col justify-between ${
                         isFailed ? 'bg-neon-red/5 border-neon-red/20 text-neon-red/70' : 'bg-neon-cyan/5 border-neon-cyan/20 text-neon-cyan/70'
                       }`}>
-                        <div className="opacity-60 mb-0.5">SSIM_IDX</div>
+                        <div className="opacity-60 mb-0.5">SSIM Index</div>
                         <div className="text-[11px] font-bold text-white flex items-center gap-0.5">
                           {img.ssim_score ? img.ssim_score.toFixed(4) : '0.0000'}
                           {isFailed && <span className="material-symbols-outlined text-[10px]">warning</span>}
@@ -240,7 +287,7 @@ const GalleryPage = () => {
                       <div className={`border p-2 flex flex-col justify-between ${
                         isFailed ? 'bg-neon-red/5 border-neon-red/20 text-neon-red/70' : 'bg-neon-cyan/5 border-neon-cyan/20 text-neon-cyan/70'
                       }`}>
-                        <div className="opacity-60 mb-0.5">PSNR_VAL</div>
+                        <div className="opacity-60 mb-0.5">PSNR Value</div>
                         <div className="text-[11px] font-bold text-white flex items-center gap-0.5">
                           {img.psnr_score ? `${img.psnr_score.toFixed(1)}dB` : '0.0dB'}
                           {isFailed && <span className="material-symbols-outlined text-[10px]">warning</span>}

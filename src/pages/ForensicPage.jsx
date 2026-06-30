@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api';
+import { Link } from 'react-router-dom';
 import SecureImage from '../components/SecureImage';
 
 const ForensicPage = () => {
@@ -9,6 +10,9 @@ const ForensicPage = () => {
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [scanLogs, setScanLogs] = useState([]);
+  const [showGuide, setShowGuide] = useState(() => {
+    return sessionStorage.getItem('varman_guide_forensic') !== 'dismissed';
+  });
   
   // Interactive Slider Params
   const [denoisingThreshold, setDenoisingThreshold] = useState(0.85);
@@ -67,6 +71,10 @@ const ForensicPage = () => {
   };
 
   const initiateScan = () => {
+    if (images.length === 0) {
+      toast.error("Forensic analysis aborted. No secured assets found in Vault. Please upload an image first.");
+      return;
+    }
     if (!selectedImage) {
       toast.error("No secured asset selected.");
       return;
@@ -82,7 +90,7 @@ const ForensicPage = () => {
       { text: "[SYS] Initializing reverse-gradient diagnostic analysis...", delay: 200 },
       { text: "[SYS] Loading local surrogate ensemble neural weights... OK", delay: 800 },
       { text: `[SYS] Backpropagating target loss wrt classification boundaries...`, delay: 1400 },
-      { text: `[SYS] Detected L_inf norm matrix signature. Max perturbation: ${(selectedImage.ssim_score ? (1 - selectedImage.ssim_score) * 0.1 : 0.031).toFixed(4)}`, delay: 2100 },
+      { text: `[SYS] Detected L-infinity norm matrix signature. Max perturbation: ${(selectedImage.ssim_score ? (1 - selectedImage.ssim_score) * 0.1 : 0.031).toFixed(4)}`, delay: 2100 },
       { text: "[WARN] Adversarial patterns show high semantic transferability to black-box targets.", delay: 2700 },
       { text: "> Run 1/50: Perturbation vector integrity verification passed (100% stable)", delay: 3200 },
       { text: `[Completed] Forensic evaluation final: Efficacy Evasion = ${(-confidenceDrop).toFixed(1)}% Evasion Rate`, delay: 3800 }
@@ -145,50 +153,105 @@ const ForensicPage = () => {
   return (
     <div className="flex-1 p-6 md:p-8 overflow-y-auto space-y-6">
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-neon-cyan/20 pb-4">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-neon-purple/20 pb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl text-neon-cyan mb-2 font-bold tracking-wider uppercase font-headline text-gradient">
-            Forensic Analysis Lab
-          </h1>
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-2xl md:text-3xl text-neon-cyan font-bold tracking-wider uppercase font-headline text-gradient">
+              Forensic Analysis Lab
+            </h1>
+            {!showGuide && (
+              <button 
+                onClick={() => {
+                  sessionStorage.removeItem('varman_guide_forensic');
+                  setShowGuide(true);
+                }}
+                className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 border border-neon-cyan/20 px-2 py-0.5 rounded text-[9px] font-code-snippet uppercase tracking-widest bg-black/20"
+              >
+                <span className="material-symbols-outlined text-[10px]">help</span>
+                Show Guide
+              </button>
+            )}
+          </div>
           <p className="text-xs text-neon-cyan/70 max-w-2xl tracking-wide uppercase font-code-snippet">
             Diagnose neural evasion rates and trace pixel variances.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <select 
-            value={selectedImage ? selectedImage.id : ''}
-            onChange={(e) => {
-              const img = images.find(i => i.id === e.target.value);
-              setSelectedImage(img);
-              setScanLogs([]);
-            }}
-            className="bg-background/80 border border-neon-cyan/30 text-neon-cyan px-4 py-2 text-[10px] tracking-widest focus:outline-none focus:border-neon-cyan rounded font-code-snippet uppercase cursor-pointer"
-          >
-            {images.length === 0 ? (
-              <option value="">No Secured Assets Available</option>
-            ) : (
-              images.map(img => (
+          {images.length === 0 ? (
+            <div style={{ width: '224px' }} className="glass-panel h-[34px] flex items-center justify-center border-neon-purple/30 rounded shadow-[0_0_15px_rgba(189,0,255,0.05)] text-[10px] font-bold tracking-widest font-code-snippet text-gradient uppercase">
+              No Secured Assets Available
+            </div>
+          ) : (
+            <select 
+              value={selectedImage ? selectedImage.id : ''}
+              onChange={(e) => {
+                const img = images.find(i => i.id === e.target.value);
+                setSelectedImage(img);
+                setScanLogs([]);
+              }}
+              style={{ width: '224px' }}
+              className="glass-panel border border-neon-purple/30 text-neon-cyan h-[34px] text-[10px] tracking-widest focus:outline-none focus:border-neon-purple rounded font-code-snippet uppercase cursor-pointer shadow-[0_0_15px_rgba(189,0,255,0.05)] text-center px-4"
+            >
+              {images.map(img => (
                 <option key={img.id} value={img.id}>{img.original_filename}</option>
-              ))
-            )}
-          </select>
+              ))}
+            </select>
+          )}
           <button 
             onClick={initiateScan}
-            disabled={scanning || images.length === 0}
-            className="bg-neon-cyan text-background font-code-snippet font-bold text-[10px] py-2 px-6 rounded hover:bg-neon-cyan/90 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] disabled:opacity-40 transition-all uppercase tracking-wider"
+            disabled={scanning}
+            style={{ width: '224px' }}
+            className="glass-panel bg-neon-purple/10 border border-neon-purple/30 text-gradient font-bold h-[34px] flex items-center justify-center rounded hover:bg-neon-purple/20 hover:shadow-[0_0_20px_rgba(189,0,255,0.3)] disabled:opacity-40 transition-all uppercase tracking-wider font-code-snippet"
           >
             {scanning ? 'SCANNING...' : 'Initiate Scan'}
           </button>
         </div>
       </header>
 
+      {/* Educational Operational Guide */}
+      {showGuide && (
+        <div className="glass-panel p-4 border border-neon-cyan/20 rounded-lg bg-surface-container-lowest/30">
+          <div className="flex justify-between items-center gap-4 mb-3 w-full">
+            <h4 className="font-code-snippet text-xs text-neon-cyan uppercase tracking-widest flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px]">info</span>
+              Forensic Diagnostic Manual
+            </h4>
+            <button 
+              onClick={() => {
+                sessionStorage.setItem('varman_guide_forensic', 'dismissed');
+                setShowGuide(false);
+              }}
+              className="text-on-surface-variant hover:text-neon-red transition-colors font-code-snippet text-[10px] uppercase tracking-widest flex items-center gap-1 border border-neon-cyan/10 px-2 py-0.5 rounded bg-black/20 shrink-0"
+            >
+              <span className="material-symbols-outlined text-[10px]">close</span>
+              Dismiss
+            </button>
+          </div>
+          <p className="text-[11px] text-on-surface-variant leading-relaxed mb-2">
+            This module executes real-time diagnostic testing to verify that your uploaded asset's protection layers are operating effectively.
+          </p>
+          <ul className="text-[11px] text-on-surface-variant leading-relaxed space-y-1 list-disc pl-4">
+            <li><strong>Select Asset:</strong> Choose any completed image from the dropdown menu to load its visual matrix into the scanner.</li>
+            <li><strong>Diagnostics Loop:</strong> Adjust the interactive sliders (Denoising Threshold, Smoothing, Robust Ensemble) to simulate different AI attacks.</li>
+            <li><strong>Metrics Breakdown:</strong> The dashboard displays the **Evasion Rate** (success rate at confusing classification algorithms) and **Pixel Variance** charts.</li>
+          </ul>
+        </div>
+      )}
+
       {images.length === 0 ? (
-        <div className="glass-panel text-center p-12 max-w-md mx-auto mt-12 flex flex-col items-center select-none">
-          <span className="material-symbols-outlined text-[64px] text-neon-cyan/60 mb-4">biotech</span>
+         <div className="glass-panel text-center p-12 max-w-lg mx-auto mt-12 flex flex-col items-center select-none shadow-[0_0_30px_rgba(0,240,255,0.1)] border-neon-cyan/40">
+          <span className="material-symbols-outlined text-[64px] mb-4 animate-pulse text-gradient drop-shadow-[0_0_10px_rgba(189,0,255,0.5)]">biotech</span>
           <h3 className="mb-2 text-on-surface font-semibold tracking-wider font-code-snippet uppercase text-sm">Forensics Offline</h3>
-          <p className="text-xs text-on-surface-variant leading-relaxed">
+          <p className="text-xs text-on-surface-variant mb-6 leading-relaxed">
             The lab requires at least one **secured completed asset** in the Vault to perform adversarial matrix diagnostics. Please upload an image first.
           </p>
+          <Link 
+            to="/upload" 
+            className="text-gradient hover:opacity-80 transition-all flex items-center justify-center gap-2 text-xs font-bold tracking-widest uppercase font-code-snippet py-2.5 px-4"
+          >
+            <span className="material-symbols-outlined text-[16px] text-neon-purple">upload_file</span>
+            Upload Image
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -278,6 +341,14 @@ const ForensicPage = () => {
               {/* Chart SVG wrapper */}
               <div className="h-[120px] w-full flex items-end justify-center relative my-2">
                 <svg className="w-full h-full overflow-visible" viewBox="0 0 280 120">
+                  {/* Gradient Definitions */}
+                  <defs>
+                    <linearGradient id="chart-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#00f0ff" />
+                      <stop offset="100%" stopColor="#bd00ff" />
+                    </linearGradient>
+                  </defs>
+                  
                   {/* Grid Lines */}
                   <line x1="0" y1="30" x2="280" y2="30" stroke="rgba(0, 240, 255, 0.05)" strokeDasharray="3 3" />
                   <line x1="0" y1="60" x2="280" y2="60" stroke="rgba(0, 240, 255, 0.05)" strokeDasharray="3 3" />
@@ -287,10 +358,10 @@ const ForensicPage = () => {
                   <path 
                     d={getChartPath()} 
                     fill="none" 
-                    stroke="#00f0ff" 
+                    stroke="url(#chart-grad)" 
                     strokeWidth="2.5" 
                     className="transition-all duration-1000 ease-in-out"
-                    style={{ filter: 'drop-shadow(0 0 4px #00f0ff)' }}
+                    style={{ filter: 'drop-shadow(0 0 4px rgba(189, 0, 255, 0.4))' }}
                   />
                 </svg>
                 <div className="absolute top-2 right-2 text-right">
@@ -373,7 +444,7 @@ const ForensicPage = () => {
               <div className="bg-surface-container-highest/90 px-4 py-2 flex items-center justify-between border-b border-neon-cyan/30 select-none">
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-neon-cyan text-[14px]">terminal</span>
-                  <span className="font-code-snippet text-[10px] text-neon-cyan tracking-widest uppercase">Diagnostic stdout log stream // LEVEL_ALPHA</span>
+                  <span className="font-code-snippet text-[10px] text-neon-cyan tracking-widest uppercase">Diagnostic stdout log stream // Level Alpha</span>
                 </div>
                 <div className="flex gap-2">
                   <div className={`w-2.5 h-2.5 rounded-full border border-neon-cyan/50 ${scanning ? 'bg-neon-cyan animate-pulse shadow-[0_0_8px_#00f0ff]' : 'bg-neon-cyan/20'}`}></div>

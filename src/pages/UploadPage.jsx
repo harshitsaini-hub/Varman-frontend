@@ -11,6 +11,9 @@ const UploadPage = () => {
   const [watermark, setWatermark] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showGuide, setShowGuide] = useState(() => {
+    return sessionStorage.getItem('varman_guide_upload') !== 'dismissed';
+  });
   const [logs, setLogs] = useState(() => {
     const saved = sessionStorage.getItem('varman_upload_logs');
     if (saved) {
@@ -198,20 +201,64 @@ const UploadPage = () => {
       {/* Header */}
       <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl text-neon-cyan mb-2 font-bold tracking-wider uppercase font-headline text-gradient">
-            Disruptor Core
-          </h1>
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-2xl md:text-3xl text-neon-cyan font-bold tracking-wider uppercase font-headline text-gradient">
+              Disruptor Core
+            </h1>
+            {!showGuide && (
+              <button 
+                onClick={() => {
+                  sessionStorage.removeItem('varman_guide_upload');
+                  setShowGuide(true);
+                }}
+                className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 border border-neon-cyan/20 px-2 py-0.5 rounded text-[9px] font-code-snippet uppercase tracking-widest bg-black/20"
+              >
+                <span className="material-symbols-outlined text-[10px]">help</span>
+                Show Guide
+              </button>
+            )}
+          </div>
           <p className="text-xs text-neon-cyan/70 max-w-2xl tracking-wide uppercase font-code-snippet">
             Inject adversarial perturbations to neutralize unauthorized AI processing.
           </p>
         </div>
         <div className="hidden md:flex gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 border border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan font-code-snippet text-[10px] shadow-[0_0_10px_rgba(0,240,255,0.1)]">
+          <div className="glass-panel px-3 py-1.5 flex items-center gap-2 border-neon-purple/30 rounded shadow-[0_0_15px_rgba(189,0,255,0.05)]">
             <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_6px_#00f0ff]"></span>
-            SYSTEM READY
-          </span>
+            <span className="text-[10px] font-bold tracking-widest font-code-snippet text-gradient">SYSTEM READY</span>
+          </div>
         </div>
       </header>
+
+      {/* Educational Operational Guide */}
+      {showGuide && (
+        <div className="glass-panel p-4 border border-neon-cyan/20 rounded-lg bg-surface-container-lowest/30 mb-6">
+          <div className="flex justify-between items-center gap-4 mb-3 w-full">
+            <h4 className="font-code-snippet text-xs text-neon-cyan uppercase tracking-widest flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px]">info</span>
+              Disruptor Core Manual
+            </h4>
+            <button 
+              onClick={() => {
+                sessionStorage.setItem('varman_guide_upload', 'dismissed');
+                setShowGuide(false);
+              }}
+              className="text-on-surface-variant hover:text-neon-red transition-colors font-code-snippet text-[10px] uppercase tracking-widest flex items-center gap-1 border border-neon-cyan/10 px-2 py-0.5 rounded bg-black/20 shrink-0"
+            >
+              <span className="material-symbols-outlined text-[10px]">close</span>
+              Dismiss
+            </button>
+          </div>
+          <p className="text-[11px] text-on-surface-variant leading-relaxed mb-2">
+            This module generates the adversarial shield matrix that protects your likeness.
+          </p>
+          <ul className="text-[11px] text-on-surface-variant leading-relaxed space-y-1 list-disc pl-4">
+            <li><strong>Configuration Panel:</strong> Adjust **Epsilon Strength** (magnitude of the math perturbation). Higher values yield stronger defense against facial scrapers, but lower the image similarity score (SSIM).</li>
+            <li><strong>Watermark Toggle:</strong> Embeds an invisible blind signature in the frequency domain that survives compression and screenshots.</li>
+            <li><strong>Sandbox Preview:</strong> After processing, a slider lets you compare the original image side-by-side with the protected version to check the visual quality.</li>
+          </ul>
+        </div>
+      )}
 
       {/* Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -276,7 +323,7 @@ const UploadPage = () => {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => document.getElementById('file-upload').click()}
-              className={`relative flex-1 group bg-surface-container/40 backdrop-blur-md rounded border transition-all duration-300 flex flex-col items-center justify-center p-12 overflow-hidden cursor-pointer shadow-[inset_0_0_50px_rgba(0,240,255,0.02)] ${
+              className={`relative flex-1 group bg-surface-container/40 backdrop-blur-md rounded border transition-all duration-300 flex flex-col items-center justify-center p-12 overflow-hidden cursor-pointer shadow-[inset_0_0_50px_rgba(0,240,255,0.01)] ${
                 isDragging ? 'border-neon-cyan shadow-[inset_0_0_50px_rgba(0,240,255,0.1)]' : 'border-neon-cyan/30 hover:border-neon-cyan/70'
               }`}
             >
@@ -286,19 +333,19 @@ const UploadPage = () => {
               <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-neon-cyan/50"></div>
               <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-neon-cyan/50"></div>
               
-              <div className="w-20 h-20 mb-6 rounded bg-surface/80 border border-neon-cyan/30 shadow-[0_0_30px_rgba(0,219,233,0.1)] flex items-center justify-center group-hover:scale-105 transition-transform duration-300 group-hover:shadow-[0_0_50px_rgba(0,219,233,0.2)] relative z-10">
+              <div className="w-20 h-20 mb-6 rounded bg-surface/80 border border-neon-cyan/30 shadow-[0_0_30px_rgba(0,240,255,0.1)] flex items-center justify-center group-hover:scale-105 transition-transform duration-300 group-hover:shadow-[0_0_50px_rgba(0,240,255,0.2)] relative z-10">
                 <span className="material-symbols-outlined text-[40px] text-neon-cyan/80 group-hover:text-neon-cyan transition-colors">cloud_upload</span>
               </div>
-              <h3 className="font-code-snippet text-xs text-neon-cyan mb-2 z-10 tracking-wide uppercase">Initialize Image Ingestion</h3>
+              <h3 className="font-code-snippet text-xs mb-2 z-10 tracking-wide uppercase text-gradient font-bold">Initialize Image Ingestion</h3>
               <p className="font-body-sm text-[11px] text-on-surface-variant text-center max-w-sm mb-6 z-10">
                 Drag & drop visual assets here, or click to browse. Supports PNG, JPG, WEBP.
               </p>
               
               <input type="file" id="file-upload" className="hidden" accept="image/*" onChange={handleFileChange} />
               
-              <div className="font-code-snippet text-[10px] text-neon-cyan/60 flex gap-4 tracking-widest uppercase z-10 bg-surface/50 px-4 py-2 rounded border border-neon-cyan/10">
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">done</span> MAX 50MB</span>
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">lock</span> SECURE</span>
+              <div className="font-code-snippet text-[10px] text-neon-purple/70 flex gap-4 tracking-widest uppercase z-10 bg-surface/50 px-4 py-2 rounded border border-neon-purple/20">
+                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px] text-neon-purple">done</span> MAX 50MB</span>
+                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px] text-neon-purple">lock</span> SECURE</span>
               </div>
             </div>
           )}
@@ -306,28 +353,23 @@ const UploadPage = () => {
 
         {/* Right Column: Configuration Panel (Span 4) */}
         <div className="lg:col-span-4 flex flex-col gap-6">
-          <div className="bg-surface-container/80 backdrop-blur-2xl rounded-none border border-neon-cyan/30 shadow-[0_0_30px_rgba(0,240,255,0.05)] p-6 relative overflow-hidden h-full flex flex-col bg-mesh">
+          <div className="bg-surface-container/80 backdrop-blur-2xl rounded border border-neon-cyan/30 shadow-[0_0_30px_rgba(0,240,255,0.05)] p-6 relative overflow-hidden h-full flex flex-col bg-mesh">
             {/* Cyber Corner Brackets */}
             <div className="absolute top-3 left-3 w-3 h-3 border-t border-l border-neon-cyan/40 pointer-events-none"></div>
             <div className="absolute top-3 right-3 w-3 h-3 border-t border-r border-neon-cyan/40 pointer-events-none"></div>
             <div className="absolute bottom-3 left-3 w-3 h-3 border-b border-l border-neon-cyan/40 pointer-events-none"></div>
             <div className="absolute bottom-3 right-3 w-3 h-3 border-b border-r border-neon-cyan/40 pointer-events-none"></div>
             
-            {/* Top-Right Cyber Accent */}
-            <div className="absolute top-0 right-0 bg-neon-cyan/10 border-b border-l border-neon-cyan/30 px-3 py-1 font-code-snippet text-[10px] text-neon-cyan select-none uppercase tracking-widest pointer-events-none">
-              SYS_CTRL
-            </div>
-
-            <div className="flex items-center gap-2 mb-6 border-b border-neon-cyan/20 pb-4">
-              <span className="material-symbols-outlined text-neon-cyan text-[20px]">tune</span>
-              <h2 className="font-code-snippet text-xs text-neon-cyan tracking-tight uppercase">Configuration</h2>
+            <div className="flex items-center gap-2 mb-6 border-b border-neon-purple/20 pb-4">
+              <span className="material-symbols-outlined text-[20px] text-gradient">tune</span>
+              <h2 className="font-code-snippet text-xs tracking-tight uppercase text-gradient font-bold">Configuration</h2>
             </div>
             
             {/* Epsilon Slider */}
             <div className="mb-8">
               <div className="flex justify-between items-end mb-4">
                 <label className="font-code-snippet text-[10px] text-on-surface-variant uppercase tracking-widest" htmlFor="epsilon-slider">Epsilon Strength</label>
-                <span className="font-code-snippet text-[10px] text-neon-cyan bg-surface border border-neon-cyan/40 px-2 py-0.5 rounded-none shadow-[0_0_10px_rgba(0,240,255,0.1)]" id="epsilon-value">
+                <span className="font-code-snippet text-[10px] text-neon-cyan bg-surface border border-neon-cyan/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(0,240,255,0.1)]" id="epsilon-value">
                   {strength.toFixed(2)}
                 </span>
               </div>
@@ -352,15 +394,18 @@ const UploadPage = () => {
                 }}
                 disabled={uploading || status === 'pending' || status === 'processing'}
               />
-              <div className="flex justify-between mt-3 font-code-snippet text-[10px] text-neon-cyan/50 tracking-widest uppercase">
-                <span>Stealth</span>
-                <span>Aggressive</span>
+              <div className="mt-3 font-code-snippet text-[10px] text-neon-cyan/50 tracking-wider">
+                <span>Expected SSIM: </span>
+                <span className="text-neon-cyan font-bold">{(1 - strength * 0.35).toFixed(4)}</span>
+                <span className="block text-[9px] text-on-surface-variant/70 mt-1 lowercase">
+                  (structural similarity index to original image)
+                </span>
               </div>
             </div>
 
             {/* Watermark Integration Toggle */}
             <div className="mb-auto">
-              <div className="flex items-center justify-between bg-surface-container-lowest/80 p-4 rounded-none border border-neon-cyan/25 shadow-inner">
+              <div className="flex items-center justify-between bg-surface-container-lowest/80 p-4 rounded border border-neon-cyan/25 shadow-inner">
                 <div>
                   <label className="font-code-snippet text-[10px] text-neon-cyan block mb-1 uppercase tracking-wide">Watermark</label>
                   <span className="font-code-snippet text-[10px] text-on-surface-variant/70">Embed blind signature.</span>
@@ -376,7 +421,7 @@ const UploadPage = () => {
                     disabled={uploading || status === 'pending' || status === 'processing'}
                     className="sr-only peer"
                   />
-                  <div className="w-10 h-5 bg-surface-variant border border-surface peer-focus:outline-none rounded-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-neon-cyan after:border-surface-variant after:border after:rounded-none after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container/20 peer-checked:border-neon-cyan/50 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"></div>
+                  <div className="w-10 h-5 bg-surface-variant border border-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-neon-cyan after:border-surface-variant after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container/20 peer-checked:border-neon-cyan/50 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"></div>
                 </label>
               </div>
             </div>
@@ -385,7 +430,7 @@ const UploadPage = () => {
             <button 
               onClick={handleUpload}
               disabled={!file || uploading || status === 'pending' || status === 'processing'}
-              className="w-full mt-6 bg-neon-cyan/10 hover:bg-neon-cyan text-neon-cyan hover:text-background font-code-snippet font-bold text-[11px] py-4 rounded-none hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] disabled:opacity-40 disabled:hover:shadow-none transition-all duration-300 relative overflow-hidden group border border-neon-cyan uppercase tracking-widest"
+              className="w-full mt-6 bg-neon-cyan/10 hover:bg-neon-cyan text-neon-cyan hover:text-background font-code-snippet font-bold text-[11px] py-4 rounded hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] disabled:opacity-40 disabled:hover:shadow-none transition-all duration-300 relative overflow-hidden group border border-neon-cyan uppercase tracking-widest"
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 <span className="material-symbols-outlined text-[16px]">electric_bolt</span>

@@ -1,13 +1,16 @@
 import { useState, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import LiquidEther from '../components/LiquidEther';
 
 const AuthPage = () => {
-  const { user, login } = useContext(AuthContext);
+  const { user, login, register } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [mode, setMode] = useState('login'); // 'login' | 'register'
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
@@ -16,25 +19,64 @@ const AuthPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
     
+    // Technical identification format check (RFC 5322 Standard Regex)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      setError('Invalid technical identifier format (valid email signature required).');
+      return;
+    }
+
+    setLoading(true);
     try {
-      await login(email, password);
+      if (mode === 'login') {
+        await login(email, password);
+      } else {
+        const displayName = email.split('@')[0];
+        await register(email, password, displayName);
+      }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Authentication failed. Please check your credentials.');
+      if (mode === 'login') {
+        setFailedAttempts(prev => prev + 1);
+        setError('user not registered/ password or email is wrong');
+      } else {
+        setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-background text-on-surface min-h-screen flex items-center justify-center font-body-lg overflow-hidden relative w-full" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(0, 219, 233, 0.05) 0%, rgba(17, 19, 29, 1) 100%)' }}>
+    <div className="bg-background text-on-surface min-h-screen flex items-center justify-center font-body-lg overflow-hidden relative w-full" style={{ backgroundColor: '#0a0c16' }}>
+      {/* Dynamic Liquid Ether Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-45">
+        <LiquidEther
+          colors={[ '#00f0ff', '#00dbe9', '#bd00ff', '#a5f3fc' ]}
+          mouseForce={50}
+          cursorSize={120}
+          isViscous={false}
+          viscous={30}
+          iterationsViscous={20}
+          iterationsPoisson={28}
+          resolution={0.35}
+          isBounce
+          autoDemo={true}
+          autoSpeed={0.95}
+          autoIntensity={3.2}
+          takeoverDuration={0.25}
+          autoResumeDelay={3000}
+          autoRampDuration={0.6}
+          BFECC={true}
+        />
+      </div>
+
       {/* Decorative Grid Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-5">
         <svg height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern height="40" id="grid" patternUnits="userSpaceOnUse" width="40">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0, 219, 233, 0.2)" stroke-width="0.5"></path>
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0, 219, 233, 0.2)" strokeWidth="0.5"></path>
             </pattern>
           </defs>
           <rect fill="url(#grid)" height="100%" width="100%"></rect>
@@ -48,11 +90,13 @@ const AuthPage = () => {
             <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
           </div>
 
-          <h1 className="font-headline-lg-mobile sm:font-headline-lg text-primary tracking-tighter uppercase mb-2 text-center text-gradient">VARMAN</h1>
-          <p className="font-code-snippet text-code-snippet text-on-surface-variant mb-8 text-center uppercase tracking-widest">Secure Access Protocol</p>
+          <h1 className="font-headline-lg-mobile sm:font-headline-lg text-gradient tracking-tighter uppercase mb-2 text-center">VARMAN</h1>
+          <p className="font-code-snippet text-code-snippet text-on-surface-variant mb-8 text-center uppercase tracking-widest">
+            {mode === 'login' ? 'Secure Access Protocol' : 'Identity Registration Protocol'}
+          </p>
 
           {error && (
-            <div className="w-full p-4 mb-6 bg-error/10 border border-error/20 text-error rounded text-xs font-code-snippet text-center">
+            <div className="w-full p-4 mb-6 bg-error/10 border border-error/20 text-error rounded text-xs font-code-snippet text-center leading-normal">
               {error}
             </div>
           )}
@@ -97,10 +141,43 @@ const AuthPage = () => {
               type="submit"
               disabled={loading}
             >
-              <span className="material-symbols-outlined text-[16px]">login</span>
-              {loading ? 'AUTHENTICATING...' : 'ESTABLISH LINK'}
+              <span className="material-symbols-outlined text-[16px]">{mode === 'login' ? 'login' : 'person_add'}</span>
+              {mode === 'login' 
+                ? (loading ? 'AUTHENTICATING...' : 'ESTABLISH LINK') 
+                : (loading ? 'REGISTERING...' : 'REGISTER & ESTABLISH LINK')
+              }
             </button>
           </form>
+
+          {mode === 'login' && failedAttempts >= 1 && (
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('register');
+                  setError('');
+                }}
+                className="text-neon-cyan hover:text-white transition-colors text-xs font-code-snippet uppercase tracking-widest underline decoration-neon-cyan/40 hover:decoration-white"
+              >
+                Register to Varman
+              </button>
+            </div>
+          )}
+
+          {mode === 'register' && (
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setError('');
+                }}
+                className="text-on-surface-variant hover:text-white transition-colors text-[10px] font-code-snippet uppercase tracking-widest underline"
+              >
+                Back to Secure Access
+              </button>
+            </div>
+          )}
 
           <div className="mt-8 flex items-center gap-2 font-code-snippet text-[10px] text-on-surface-variant/50 uppercase tracking-widest">
             <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse shadow-[0_0_5px_rgba(0,240,255,0.5)]"></span>

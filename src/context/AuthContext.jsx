@@ -51,6 +51,10 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('varman_token');
     sessionStorage.removeItem('varman_upload_logs');
+    sessionStorage.removeItem('varman_guide_dashboard');
+    sessionStorage.removeItem('varman_guide_upload');
+    sessionStorage.removeItem('varman_guide_gallery');
+    sessionStorage.removeItem('varman_guide_forensic');
     setUser(null);
   };
 
