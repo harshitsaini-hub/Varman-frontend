@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api';
 import { Link } from 'react-router-dom';
 import SecureImage from '../components/SecureImage';
+import { AuthContext } from '../context/AuthContext';
 
 const ForensicPage = () => {
+  const { vaultKey } = useContext(AuthContext);
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -276,7 +278,9 @@ const ForensicPage = () => {
                   className="relative max-w-full max-h-full aspect-video overflow-hidden cursor-crosshair flex items-center justify-center"
                 >
                   <SecureImage 
-                    src={`/images/download/${selectedImage.id}`} 
+                    src={`/images/download/${selectedImage.id}`}
+                    imageId={selectedImage.id}
+                    encrypted={!!selectedImage.vault_sealed}
                     alt={selectedImage.original_filename} 
                     className="max-w-full max-h-full object-contain pointer-events-none select-none"
                   />

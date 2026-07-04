@@ -1,9 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api';
 import ImageCompare from '../components/ImageCompare';
+import { AuthContext } from '../context/AuthContext';
+import { encryptBlob } from '../utils/cryptoVault';
+import { cacheImage } from '../utils/vaultDB';
 
 const UploadPage = () => {
+  const { vaultKey } = useContext(AuthContext);
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [protectedUrl, setProtectedUrl] = useState(null);
@@ -174,17 +178,40 @@ const UploadPage = () => {
             addLog(`[Failed] Optimization failed: Visual similarity constraint violated`, 'error');
           }
 
-          // Fetch the protected image file using Axios (expects Bearer token) and construct Blob URL
+          // Fetch the protected image, encrypt it, and seal in vault
           try {
             addLog(`[Storage] Fetching protected asset from secure directory...`);
             const imgRes = await api.get(`/images/download/${id}`, { responseType: 'blob' });
-            const blobUrl = URL.createObjectURL(imgRes.data);
+            const plainBlob = imgRes.data;
+            const blobUrl = URL.createObjectURL(plainBlob);
             setProtectedUrl(blobUrl);
-            addLog(`[Secured] Output asset loaded in sandbox and ready for download.`, 'success');
+            addLog(`[Secured] Output asset loaded in sandbox.`, 'success');
+
+            // ── Vault Encryption ──────────────────────────────────────
+            if (vaultKey) {
+              addLog(`[Vault] Encrypting asset with AES-256-GCM client-side...`);
+              const encryptedBuffer = await encryptBlob(vaultKey, plainBlob);
+              const encryptedBlob = new Blob([encryptedBuffer]);
+
+              // Upload encrypted blob to seal endpoint
+              addLog(`[Vault] Uploading encrypted vault blob to secure storage...`);
+              const sealForm = new FormData();
+              sealForm.append('vault_blob', encryptedBlob, `${id}_vault.enc`);
+              await api.post(`/images/${id}/vault`, sealForm, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              });
+              addLog(`[Vault] ✓ Asset sealed. Plaintext purged from server.`, 'success');
+
+              // Cache decrypted version locally for fast gallery loads
+              await cacheImage(id, plainBlob, { filename: file?.name });
+              addLog(`[Vault] ✓ Decrypted copy cached in local vault.`, 'success');
+            } else {
+              addLog(`[Vault] Warning: No vault key available. Image stored unencrypted.`, 'error');
+            }
           } catch (err) {
-            console.error("Failed to download protected blob url", err);
-            toast.error("Security optimization applied, but image retrieval failed.");
-            addLog(`[Error] Asset download failed: ${err.message}`, 'error');
+            console.error("Failed to download/seal protected image", err);
+            toast.error("Security optimization applied, but vault sealing failed.");
+            addLog(`[Error] Vault seal failed: ${err.message}`, 'error');
           } finally {
             setUploading(false);
           }

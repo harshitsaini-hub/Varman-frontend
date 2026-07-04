@@ -1,11 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { ImageIcon, AlertCircle } from 'lucide-react';
 import api from '../api';
+import { AuthContext } from '../context/AuthContext';
+import { decryptBlob } from '../utils/cryptoVault';
+import { getCachedImage, cacheImage } from '../utils/vaultDB';
 
-const SecureImage = ({ src, alt, className, style, ...props }) => {
+/**
+ * SecureImage — Vault-aware authenticated image component.
+ *
+ * Props:
+ *   - src:       API path like "/images/download/{id}"
+ *   - imageId:   The image UUID (needed for IndexedDB cache lookups)
+ *   - encrypted: If true, the blob from the backend is AES-256-GCM encrypted
+ *                and needs client-side decryption with the vault key.
+ *   - alt, className, style: Standard img props
+ */
+const SecureImage = ({ src, imageId, encrypted = false, alt, className, style, ...props }) => {
   const [objectUrl, setObjectUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const { vaultKey } = useContext(AuthContext);
 
   useEffect(() => {
     if (!src) return;
@@ -17,13 +31,40 @@ const SecureImage = ({ src, alt, className, style, ...props }) => {
 
     const fetchImage = async () => {
       try {
-        const response = await api.get(src, { responseType: 'blob' });
-        if (isMounted) {
-          const url = URL.createObjectURL(response.data);
-          currentUrl = url;
-          setObjectUrl(url);
-          setLoading(false);
+        // ── Check IndexedDB cache first (vault-sealed images only) ────
+        if (encrypted && imageId) {
+          const cached = await getCachedImage(imageId);
+          if (cached && isMounted) {
+            const url = URL.createObjectURL(cached.blob);
+            currentUrl = url;
+            setObjectUrl(url);
+            setLoading(false);
+            return;
+          }
         }
+
+        // ── Fetch from backend ────────────────────────────────────────
+        const response = await api.get(src, { responseType: 'blob' });
+
+        if (!isMounted) return;
+
+        let displayBlob = response.data;
+
+        // ── Decrypt if vault-sealed ───────────────────────────────────
+        if (encrypted && vaultKey) {
+          const encBuffer = await response.data.arrayBuffer();
+          displayBlob = await decryptBlob(vaultKey, encBuffer);
+
+          // Cache the decrypted blob in IndexedDB for next time
+          if (imageId) {
+            cacheImage(imageId, displayBlob).catch(() => {});
+          }
+        }
+
+        const url = URL.createObjectURL(displayBlob);
+        currentUrl = url;
+        setObjectUrl(url);
+        setLoading(false);
       } catch (err) {
         console.error('Error loading secure image:', src, err);
         if (isMounted) {
@@ -41,7 +82,7 @@ const SecureImage = ({ src, alt, className, style, ...props }) => {
         URL.revokeObjectURL(currentUrl);
       }
     };
-  }, [src]);
+  }, [src, encrypted, vaultKey, imageId]);
 
   if (loading) {
     return (

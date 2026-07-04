@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api';
 import SecureImage from '../components/SecureImage';
+import { AuthContext } from '../context/AuthContext';
+import { decryptBlob } from '../utils/cryptoVault';
+import { getCachedImage, deleteCachedImage } from '../utils/vaultDB';
 
 const GalleryPage = () => {
+  const { vaultKey } = useContext(AuthContext);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'SECURED' | 'FAILED'
@@ -31,11 +35,26 @@ const GalleryPage = () => {
     fetchImages();
   }, []);
 
-  const downloadImage = async (id, filename) => {
+  const downloadImage = async (id, filename, vaultSealed) => {
     const downloadToast = toast.loading("Preparing secure download...");
     try {
       const res = await api.get(`/images/download/${id}`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+
+      let downloadBlob = res.data;
+
+      // If vault-sealed, decrypt the blob before downloading
+      if (vaultSealed && vaultKey) {
+        // Check IndexedDB cache first for already-decrypted version
+        const cached = await getCachedImage(id);
+        if (cached) {
+          downloadBlob = cached.blob;
+        } else {
+          const encBuffer = await res.data.arrayBuffer();
+          downloadBlob = await decryptBlob(vaultKey, encBuffer);
+        }
+      }
+
+      const url = window.URL.createObjectURL(downloadBlob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', filename || `protected_${id}.png`);
@@ -58,6 +77,8 @@ const GalleryPage = () => {
 
     try {
       await api.delete(`/images/${id}`);
+      // Also clear from local vault cache
+      deleteCachedImage(id).catch(() => {});
     } catch (error) {
       console.error("Delete request failed:", error);
       toast.error("Failed to delete asset from secure storage.");
@@ -248,7 +269,9 @@ const GalleryPage = () => {
                   }`}>
                     {isCompleted || isFailed ? (
                       <SecureImage 
-                        src={`/images/download/${img.id}`} 
+                        src={`/images/download/${img.id}`}
+                        imageId={img.id}
+                        encrypted={!!img.vault_sealed}
                         alt={img.original_filename}
                         className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                       />
@@ -300,7 +323,7 @@ const GalleryPage = () => {
                     }`}>
                       <button 
                         disabled={!isCompleted && !isFailed}
-                        onClick={() => downloadImage(img.id, img.original_filename)}
+                        onClick={() => downloadImage(img.id, img.original_filename, img.vault_sealed)}
                         className={`flex-1 py-1.5 text-[10px] font-bold tracking-widest transition-colors flex items-center justify-center gap-1 uppercase border rounded-none font-code-snippet ${
                           isFailed 
                             ? 'bg-transparent text-neon-red/50 border-neon-red/30 cursor-not-allowed hover:bg-neon-red/10' 
