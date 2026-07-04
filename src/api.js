@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  // Use the environment variable if deployed, otherwise fallback to local proxy
+  baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
 // Interceptor to inject JWT token
