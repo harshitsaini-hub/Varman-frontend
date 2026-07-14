@@ -7,6 +7,7 @@ const AuthPage = () => {
   const { user, login, register } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
@@ -32,8 +33,8 @@ const AuthPage = () => {
       if (mode === 'login') {
         await login(email, password);
       } else {
-        const displayName = email.split('@')[0];
-        await register(email, password, displayName);
+        const name = displayName.trim() || email.split('@')[0];
+        await register(email, password, name);
       }
     } catch (err) {
       if (mode === 'login') {
@@ -118,6 +119,25 @@ const AuthPage = () => {
                 />
               </div>
             </div>
+
+            {mode === 'register' && (
+              <div className="space-y-1">
+                <label className="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-2 text-xs font-semibold tracking-wider" htmlFor="displayName">
+                  <span className="material-symbols-outlined text-[14px]">badge</span> Operator Alias
+                </label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    id="displayName" 
+                    className="w-full bg-surface-container-highest border border-outline-variant rounded py-3 px-4 text-on-surface font-code-snippet text-sm focus:outline-none input-glow transition-all placeholder:text-on-surface-variant/30 focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan" 
+                    placeholder="kagenou" 
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    maxLength={100}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="space-y-1">
               <label className="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-2 text-xs font-semibold tracking-wider" htmlFor="password">
