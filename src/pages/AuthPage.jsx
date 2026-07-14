@@ -149,8 +149,11 @@ const AuthPage = () => {
             </button>
           </form>
 
-          {mode === 'login' && failedAttempts >= 1 && (
+          {mode === 'login' && (
             <div className="mt-6 text-center">
+              <p className="text-on-surface-variant/50 text-[10px] font-code-snippet uppercase tracking-widest mb-2">
+                No access credentials?
+              </p>
               <button
                 type="button"
                 onClick={() => {
