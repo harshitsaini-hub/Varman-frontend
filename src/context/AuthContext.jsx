@@ -25,11 +25,31 @@ export const AuthProvider = ({ children }) => {
     const init = async () => {
       if (localStorage.getItem('varman_token')) {
         // Try to restore vault key from sessionStorage (survives page refresh)
-        const restoredKey = await restoreVaultKey();
-        if (restoredKey) {
-          setVaultKey(restoredKey);
+        try {
+          const restoredKey = await restoreVaultKey();
+          if (restoredKey) {
+            setVaultKey(restoredKey);
+          }
+        } catch (e) {
+          console.warn('[Vault] Could not restore vault key:', e);
         }
-        await fetchUser();
+
+        // Race the /auth/me call against a timeout so we don't hang
+        // forever when the Hugging Face Space is waking up from sleep.
+        const AUTH_TIMEOUT_MS = 8000;
+        try {
+          await Promise.race([
+            fetchUser(),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Backend timeout')), AUTH_TIMEOUT_MS)
+            ),
+          ]);
+        } catch (e) {
+          console.warn('[Auth] Backend did not respond in time, clearing stale session:', e.message);
+          localStorage.removeItem('varman_token');
+          setUser(null);
+          setLoading(false);
+        }
       } else {
         setLoading(false);
       }
