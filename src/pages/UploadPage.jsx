@@ -2,55 +2,27 @@ import { useState, useEffect, useRef, useContext } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api';
 import ImageCompare from '../components/ImageCompare';
+import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import { AuthContext } from '../context/AuthContext';
-import { encryptBlob } from '../utils/cryptoVault';
-import { cacheImage } from '../utils/vaultDB';
+import { Shield, Upload, RefreshCw, CheckCircle2, AlertCircle, Sliders, Layers, Clock, Zap, FileImage, ArrowRight } from 'lucide-react';
 
 const UploadPage = () => {
-  const { vaultKey } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [protectedUrl, setProtectedUrl] = useState(null);
-  const [strength, setStrength] = useState(0.05);
-  const [watermark, setWatermark] = useState(true);
+  const [presetName, setPresetName] = useState('Balanced'); // 'Light' | 'Balanced' | 'Aggressive'
+  const [enableGrid, setEnableGrid] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [showGuide, setShowGuide] = useState(() => {
-    return sessionStorage.getItem('varman_guide_upload') !== 'dismissed';
-  });
-  const [logs, setLogs] = useState(() => {
-    const saved = sessionStorage.getItem('varman_upload_logs');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Failed to parse logs from sessionStorage", e);
-      }
-    }
-    return [
-      { time: new Date().toLocaleTimeString(), text: 'VARMAN v2.0.4a - Kernel Initialized', type: 'system' },
-      { time: new Date().toLocaleTimeString(), text: 'Awaiting user input...', type: 'system' }
-    ];
-  });
-  
-  // Polling states
+
+  // Task & Polling States
   const [status, setStatus] = useState(null); // 'pending' | 'processing' | 'completed' | 'failed'
+  const [metrics, setMetrics] = useState(null);
+  const [processingTimeMs, setProcessingTimeMs] = useState(null);
   const pollInterval = useRef(null);
-  const terminalEndRef = useRef(null);
 
-  // Sync logs with sessionStorage whenever state changes
-  useEffect(() => {
-    sessionStorage.setItem('varman_upload_logs', JSON.stringify(logs));
-  }, [logs]);
-
-  // Auto-scroll terminal logs
-  useEffect(() => {
-    if (terminalEndRef.current) {
-      terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [logs]);
-
-  // Clean up object URLs on unmount
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -59,22 +31,12 @@ const UploadPage = () => {
     };
   }, [previewUrl, protectedUrl]);
 
-  const addLog = (text, type = 'info') => {
-    setLogs(prev => [...prev, {
-      time: new Date().toLocaleTimeString(),
-      text,
-      type
-    }]);
-  };
-
   const processSelectedFile = (selectedFile) => {
     if (!selectedFile.type.startsWith('image/')) {
       toast.error("Invalid file format. Please select an image.");
-      addLog(`[Error] Ingestion failed: Invalid file type ${selectedFile.type}`, 'error');
       return;
     }
-    
-    // Revoke previous URLs
+
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     if (protectedUrl) URL.revokeObjectURL(protectedUrl);
 
@@ -82,8 +44,7 @@ const UploadPage = () => {
     setPreviewUrl(URL.createObjectURL(selectedFile));
     setProtectedUrl(null);
     setStatus(null);
-    
-    addLog(`[Ingest] Ingested raw payload: ${selectedFile.name} (${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`, 'success');
+    setMetrics(null);
   };
 
   const handleFileChange = (e) => {
@@ -92,28 +53,13 @@ const UploadPage = () => {
     }
   };
 
-  const triggerReset = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    if (protectedUrl) URL.revokeObjectURL(protectedUrl);
-    setFile(null);
-    setPreviewUrl(null);
-    setProtectedUrl(null);
-    setStatus(null);
-    setUploading(false);
-    if (pollInterval.current) clearInterval(pollInterval.current);
-    
-    setLogs([
-      { time: new Date().toLocaleTimeString(), text: 'VARMAN v2.0.4a - Ingestion Pipeline Reset', type: 'system' },
-      { time: new Date().toLocaleTimeString(), text: 'Awaiting user input...', type: 'system' }
-    ]);
-  };
-
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e) => {
+    e.preventDefault();
     setIsDragging(false);
   };
 
@@ -125,378 +71,307 @@ const UploadPage = () => {
     }
   };
 
-  const handleUpload = async () => {
-    if (!file) return;
+  const triggerReset = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (protectedUrl) URL.revokeObjectURL(protectedUrl);
+    setFile(null);
+    setPreviewUrl(null);
+    setProtectedUrl(null);
+    setStatus(null);
+    setMetrics(null);
+    if (pollInterval.current) clearInterval(pollInterval.current);
+  };
+
+  const pollImageStatus = (imageId) => {
+    pollInterval.current = setInterval(async () => {
+      try {
+        const res = await api.get(`/images/${imageId}/status`);
+        const data = res.data;
+        setStatus(data.status);
+
+        if (data.status === 'completed') {
+          clearInterval(pollInterval.current);
+          setUploading(false);
+          setMetrics(data);
+          setProcessingTimeMs(data.processing_time_ms);
+
+          // Fetch protected image blob
+          const imgRes = await api.get(`/images/${imageId}/file`, { responseType: 'blob' });
+          const objectUrl = URL.createObjectURL(imgRes.data);
+          setProtectedUrl(objectUrl);
+          toast.success("Image protection pipeline completed!");
+        } else if (data.status === 'failed') {
+          clearInterval(pollInterval.current);
+          setUploading(false);
+          toast.error(data.error_message || "Protection task failed.");
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    }, 1000);
+  };
+
+  const handleProtect = async () => {
+    if (!file) {
+      toast.error("Please select an image first.");
+      return;
+    }
+
     setUploading(true);
-    toast.loading("Uploading asset to defense core...", { id: "upload-status" });
-    addLog(`[Init] Establishing connection to protection pipeline...`);
+    setStatus('processing');
+    setMetrics(null);
 
     const formData = new FormData();
     formData.append('files', file);
-    formData.append('protection_strength', strength);
+    formData.append('preset_name', presetName);
+    formData.append('enable_grid', enableGrid ? 'true' : 'false');
 
     try {
       const res = await api.post('/images/protect', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      const newImageId = res.data[0].id;
-      setStatus('pending');
-      toast.success("Asset uploaded. Enqueuing protection job...", { id: "upload-status" });
-      addLog(`[Queue] Job enqueued successfully. Job ID: ${newImageId}`, 'success');
-      startPolling(newImageId);
+
+      const queuedImage = res.data[0];
+      if (queuedImage && queuedImage.id) {
+        pollImageStatus(queuedImage.id);
+      }
     } catch (err) {
-      console.error(err);
-      const errMsg = err.response?.data?.detail || "Upload failed";
-      toast.error(errMsg, { id: "upload-status" });
-      addLog(`[Error] Connection or payload upload failed: ${errMsg}`, 'error');
       setUploading(false);
+      setStatus('failed');
+      console.error("Protection upload failed:", err);
+      toast.error(err.response?.data?.detail || "Failed to submit image protection task.");
     }
   };
 
-  const startPolling = (id) => {
-    if (pollInterval.current) clearInterval(pollInterval.current);
-    addLog(`[Engine] Initiating telemetry monitoring loop for job ${id.substring(0, 8)}...`);
-    
-    pollInterval.current = setInterval(async () => {
-      try {
-        const res = await api.get(`/images/status/${id}`);
-        const currentStatus = res.data.status;
-        setStatus(currentStatus);
-        
-        if (currentStatus === 'processing') {
-          addLog(`[Engine] Optimizing adversarial perturbations (Epsilon = ${strength.toFixed(3)})...`, 'info');
-        }
-
-        if (currentStatus === 'completed' || currentStatus === 'failed') {
-          clearInterval(pollInterval.current);
-          
-          if (currentStatus === 'completed') {
-            toast.success("Optimizing process completed!");
-            addLog(`[Completed] Defense matrix optimization complete. SSIM: ${res.data.ssim_score?.toFixed(4)} | PSNR: ${res.data.psnr_score?.toFixed(2)}dB`, 'success');
-          } else {
-            toast.error("Gradients optimization failed visual quality thresholds.");
-            addLog(`[Failed] Optimization failed: Visual similarity constraint violated`, 'error');
-          }
-
-          // Fetch the protected image, encrypt it, and seal in vault
-          try {
-            addLog(`[Storage] Fetching protected asset from secure directory...`);
-            const imgRes = await api.get(`/images/download/${id}`, { responseType: 'blob' });
-            const plainBlob = imgRes.data;
-            const blobUrl = URL.createObjectURL(plainBlob);
-            setProtectedUrl(blobUrl);
-            addLog(`[Secured] Output asset loaded in sandbox.`, 'success');
-
-            // ── Vault Encryption ──────────────────────────────────────
-            if (vaultKey) {
-              addLog(`[Vault] Encrypting asset with AES-256-GCM client-side...`);
-              const encryptedBuffer = await encryptBlob(vaultKey, plainBlob);
-              const encryptedBlob = new Blob([encryptedBuffer]);
-
-              // Upload encrypted blob to seal endpoint
-              addLog(`[Vault] Uploading encrypted vault blob to secure storage...`);
-              const sealForm = new FormData();
-              sealForm.append('vault_blob', encryptedBlob, `${id}_vault.enc`);
-              await api.post(`/images/${id}/vault`, sealForm, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-              });
-              addLog(`[Vault] ✓ Asset sealed. Plaintext purged from server.`, 'success');
-
-              // Cache decrypted version locally for fast gallery loads
-              await cacheImage(id, plainBlob, { filename: file?.name });
-              addLog(`[Vault] ✓ Decrypted copy cached in local vault.`, 'success');
-            } else {
-              addLog(`[Vault] Warning: No vault key available. Image stored unencrypted.`, 'error');
-            }
-          } catch (err) {
-            console.error("Failed to download/seal protected image", err);
-            toast.error("Security optimization applied, but vault sealing failed.");
-            addLog(`[Error] Vault seal failed: ${err.message}`, 'error');
-          } finally {
-            setUploading(false);
-          }
-        }
-      } catch (err) {
-        console.error("Polling error", err);
-        addLog(`[Error] Telemetry connection interrupted. Retrying...`, 'error');
-      }
-    }, 3000);
-  };
-
   return (
-    <div className="flex-1 p-6 md:p-8 overflow-y-auto">
-      {/* Header */}
-      <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h1 className="text-2xl md:text-3xl text-neon-cyan font-bold tracking-wider uppercase font-headline text-gradient">
-              Disruptor Core
-            </h1>
-            {!showGuide && (
-              <button 
-                onClick={() => {
-                  sessionStorage.removeItem('varman_guide_upload');
-                  setShowGuide(true);
-                }}
-                className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 border border-neon-cyan/20 px-2 py-0.5 rounded text-[9px] font-code-snippet uppercase tracking-widest bg-black/20"
-              >
-                <span className="material-symbols-outlined text-[10px]">help</span>
-                Show Guide
-              </button>
-            )}
-          </div>
-          <p className="text-xs text-neon-cyan/70 max-w-2xl tracking-wide uppercase font-code-snippet">
-            Inject adversarial perturbations to neutralize unauthorized AI processing.
-          </p>
-        </div>
-        <div className="hidden md:flex gap-2">
-          <div className="glass-panel px-3 py-1.5 flex items-center gap-2 border-neon-purple/30 rounded shadow-[0_0_15px_rgba(189,0,255,0.05)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_6px_#00f0ff]"></span>
-            <span className="text-[10px] font-bold tracking-widest font-code-snippet text-gradient">SYSTEM READY</span>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-emerald-100">
+      <Navbar />
 
-      {/* Educational Operational Guide */}
-      {showGuide && (
-        <div className="glass-panel p-4 border border-neon-cyan/20 rounded-lg bg-surface-container-lowest/30 mb-6">
-          <div className="flex justify-between items-center gap-4 mb-3 w-full">
-            <h4 className="font-code-snippet text-xs text-neon-cyan uppercase tracking-widest flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px]">info</span>
-              Disruptor Core Manual
-            </h4>
-            <button 
-              onClick={() => {
-                sessionStorage.setItem('varman_guide_upload', 'dismissed');
-                setShowGuide(false);
-              }}
-              className="text-on-surface-variant hover:text-neon-red transition-colors font-code-snippet text-[10px] uppercase tracking-widest flex items-center gap-1 border border-neon-cyan/10 px-2 py-0.5 rounded bg-black/20 shrink-0"
-            >
-              <span className="material-symbols-outlined text-[10px]">close</span>
-              Dismiss
-            </button>
-          </div>
-          <p className="text-[11px] text-on-surface-variant leading-relaxed mb-2">
-            This module generates the adversarial shield matrix that protects your likeness.
-          </p>
-          <ul className="text-[11px] text-on-surface-variant leading-relaxed space-y-1 list-disc pl-4">
-            <li><strong>Configuration Panel:</strong> Adjust **Epsilon Strength** (magnitude of the math perturbation). Higher values yield stronger defense against facial scrapers, but lower the image similarity score (SSIM).</li>
-            <li><strong>Watermark Toggle:</strong> Embeds an invisible blind signature in the frequency domain that survives compression and screenshots.</li>
-            <li><strong>Sandbox Preview:</strong> After processing, a slider lets you compare the original image side-by-side with the protected version to check the visual quality.</li>
-          </ul>
-        </div>
-      )}
+      <div className="app-container">
+        <Sidebar />
 
-      {/* Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Drag & Drop Zone or Compare Screen (Span 8) */}
-        <div className="lg:col-span-8 flex flex-col h-full min-h-[400px]">
-          {protectedUrl && previewUrl ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 border border-neon-cyan/30 bg-surface-container/20 rounded-md relative">
-              <h3 className="font-code-snippet text-xs text-neon-cyan mb-4 uppercase tracking-widest">Adversarial Output Sandbox</h3>
-              <div className="w-full max-w-lg mb-6">
-                <ImageCompare originalUrl={previewUrl} protectedUrl={protectedUrl} />
+        <div className="flex-1 md:pl-64 min-h-[calc(100vh-64px)] w-full relative">
+          <main className="max-w-7xl mx-auto px-6 md:px-12 py-10">
+            {/* Header */}
+            <div className="mb-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-3">
+                <Shield className="w-3.5 h-3.5 text-emerald-600" />
+                Varman Disruption Console
               </div>
-              <button 
-                onClick={triggerReset} 
-                className="bg-neon-cyan/20 text-neon-cyan border border-neon-cyan py-2 px-6 hover:bg-neon-cyan hover:text-background transition-colors flex items-center justify-center gap-2 text-xs font-bold tracking-widest uppercase font-code-snippet"
-              >
-                Clear Sandbox
-              </button>
-            </div>
-          ) : file ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 border border-neon-cyan/30 bg-surface-container/20 rounded-md relative text-center">
-              {previewUrl && (
-                <div className="w-full max-w-md aspect-video mb-6 border border-neon-cyan/20 overflow-hidden flex items-center justify-center bg-black/40">
-                  <img src={previewUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
-                </div>
-              )}
-              <h3 className="font-code-snippet text-xs text-on-surface mb-1 uppercase tracking-widest">{file.name}</h3>
-              <p className="text-[10px] text-on-surface-variant uppercase font-code-snippet mb-6">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-              
-              {status === 'processing' && (
-                <div className="flex flex-col items-center gap-2 mb-6">
-                  <span className="material-symbols-outlined text-neon-cyan text-4xl animate-spin">sync</span>
-                  <p className="text-neon-cyan font-code-snippet text-xs uppercase tracking-widest">Optimizing Matrix...</p>
-                </div>
-              )}
-
-              {status === 'pending' && (
-                <div className="flex flex-col items-center gap-2 mb-6 text-secondary">
-                  <span className="material-symbols-outlined text-secondary text-4xl animate-pulse">hourglass_empty</span>
-                  <p className="font-code-snippet text-xs uppercase tracking-widest">Held in GPU Queue...</p>
-                </div>
-              )}
-
-              {status === 'failed' && (
-                <div className="flex flex-col items-center gap-2 mb-6 text-neon-red">
-                  <span className="material-symbols-outlined text-neon-red text-4xl">warning</span>
-                  <p className="font-code-snippet text-xs uppercase tracking-widest">Failed Visual Quality threshold</p>
-                </div>
-              )}
-
-              {!status && (
-                <button 
-                  onClick={triggerReset} 
-                  className="bg-neon-red/10 text-neon-red border border-neon-red/30 py-2 px-6 hover:bg-neon-red hover:text-white transition-colors flex items-center justify-center gap-2 text-xs font-bold tracking-widest uppercase font-code-snippet"
-                >
-                  Change Asset
-                </button>
-              )}
-            </div>
-          ) : (
-            <div 
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => document.getElementById('file-upload').click()}
-              className={`relative flex-1 group bg-surface-container/40 backdrop-blur-md rounded border transition-all duration-300 flex flex-col items-center justify-center p-12 overflow-hidden cursor-pointer shadow-[inset_0_0_50px_rgba(0,240,255,0.01)] ${
-                isDragging ? 'border-neon-cyan shadow-[inset_0_0_50px_rgba(0,240,255,0.1)]' : 'border-neon-cyan/30 hover:border-neon-cyan/70'
-              }`}
-            >
-              {/* Corner brackets */}
-              <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-neon-cyan/50"></div>
-              <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-neon-cyan/50"></div>
-              <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-neon-cyan/50"></div>
-              <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-neon-cyan/50"></div>
-              
-              <div className="w-20 h-20 mb-6 rounded bg-surface/80 border border-neon-cyan/30 shadow-[0_0_30px_rgba(0,240,255,0.1)] flex items-center justify-center group-hover:scale-105 transition-transform duration-300 group-hover:shadow-[0_0_50px_rgba(0,240,255,0.2)] relative z-10">
-                <span className="material-symbols-outlined text-[40px] text-neon-cyan/80 group-hover:text-neon-cyan transition-colors">cloud_upload</span>
-              </div>
-              <h3 className="font-code-snippet text-xs mb-2 z-10 tracking-wide uppercase text-gradient font-bold">Initialize Image Ingestion</h3>
-              <p className="font-body-sm text-[11px] text-on-surface-variant text-center max-w-sm mb-6 z-10">
-                Drag & drop visual assets here, or click to browse. Supports PNG, JPG, WEBP.
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Protect Photo Against AI Theft
+              </h1>
+              <p className="text-sm text-slate-600 mt-1 max-w-2xl">
+                Upload a portrait photo to apply YuNet landmark micro-warping and Y-channel DCT frequency disruption before sharing online.
               </p>
-              
-              <input type="file" id="file-upload" className="hidden" accept="image/*" onChange={handleFileChange} />
-              
-              <div className="font-code-snippet text-[10px] text-neon-purple/70 flex gap-4 tracking-widest uppercase z-10 bg-surface/50 px-4 py-2 rounded border border-neon-purple/20">
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px] text-neon-purple">done</span> MAX 50MB</span>
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px] text-neon-purple">lock</span> SECURE</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Configuration Panel (Span 4) */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <div className="bg-surface-container/80 backdrop-blur-2xl rounded border border-neon-cyan/30 shadow-[0_0_30px_rgba(0,240,255,0.05)] p-6 relative overflow-hidden h-full flex flex-col bg-mesh">
-            {/* Cyber Corner Brackets */}
-            <div className="absolute top-3 left-3 w-3 h-3 border-t border-l border-neon-cyan/40 pointer-events-none"></div>
-            <div className="absolute top-3 right-3 w-3 h-3 border-t border-r border-neon-cyan/40 pointer-events-none"></div>
-            <div className="absolute bottom-3 left-3 w-3 h-3 border-b border-l border-neon-cyan/40 pointer-events-none"></div>
-            <div className="absolute bottom-3 right-3 w-3 h-3 border-b border-r border-neon-cyan/40 pointer-events-none"></div>
-            
-            <div className="flex items-center gap-2 mb-6 border-b border-neon-purple/20 pb-4">
-              <span className="material-symbols-outlined text-[20px] text-gradient">tune</span>
-              <h2 className="font-code-snippet text-xs tracking-tight uppercase text-gradient font-bold">Configuration</h2>
-            </div>
-            
-            {/* Epsilon Slider */}
-            <div className="mb-8">
-              <div className="flex justify-between items-end mb-4">
-                <label className="font-code-snippet text-[10px] text-on-surface-variant uppercase tracking-widest" htmlFor="epsilon-slider">Epsilon Strength</label>
-                <span className="font-code-snippet text-[10px] text-neon-cyan bg-surface border border-neon-cyan/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(0,240,255,0.1)]" id="epsilon-value">
-                  {strength.toFixed(2)}
-                </span>
-              </div>
-              <input 
-                className="cyber-range cursor-pointer" 
-                id="epsilon-slider" 
-                max="0.20" 
-                min="0.01" 
-                step="0.01" 
-                type="range" 
-                value={strength}
-                onChange={(e) => {
-                  setStrength(parseFloat(e.target.value));
-                }}
-                onMouseUp={(e) => {
-                  const val = parseFloat(e.target.value);
-                  addLog(`[Config] Epsilon strength modified to: ${val.toFixed(2)}`);
-                }}
-                onTouchEnd={(e) => {
-                  const val = parseFloat(e.target.value);
-                  addLog(`[Config] Epsilon strength modified to: ${val.toFixed(2)}`);
-                }}
-                disabled={uploading || status === 'pending' || status === 'processing'}
-              />
-              <div className="mt-3 font-code-snippet text-[10px] text-neon-cyan/50 tracking-wider">
-                <span>Expected SSIM: </span>
-                <span className="text-neon-cyan font-bold">{(1 - strength * 0.35).toFixed(4)}</span>
-                <span className="block text-[9px] text-on-surface-variant/70 mt-1 lowercase">
-                  (structural similarity index to original image)
-                </span>
-              </div>
             </div>
 
-            {/* Watermark Integration Toggle */}
-            <div className="mb-auto">
-              <div className="flex items-center justify-between bg-surface-container-lowest/80 p-4 rounded border border-neon-cyan/25 shadow-inner">
-                <div>
-                  <label className="font-code-snippet text-[10px] text-neon-cyan block mb-1 uppercase tracking-wide">Watermark</label>
-                  <span className="font-code-snippet text-[10px] text-on-surface-variant/70">Embed blind signature.</span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={watermark}
-                    onChange={(e) => {
-                      setWatermark(e.target.checked);
-                      addLog(`[Config] Watermark toggle: ${e.target.checked ? 'ENABLED' : 'DISABLED'}`);
-                    }}
-                    disabled={uploading || status === 'pending' || status === 'processing'}
-                    className="sr-only peer"
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Column: Upload Dropzone & Controls */}
+              <div className="lg:col-span-6 flex flex-col gap-6">
+                {/* Drag and Drop Zone */}
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`bg-white rounded-3xl p-8 border-2 border-dashed transition-all flex flex-col items-center justify-center text-center cursor-pointer shadow-sm min-h-[260px] ${
+                    isDragging
+                      ? 'border-emerald-500 bg-emerald-50/50 scale-[1.01]'
+                      : file
+                      ? 'border-slate-300'
+                      : 'border-slate-300 hover:border-slate-400'
+                  }`}
+                  onClick={() => !file && document.getElementById('file-upload').click()}
+                >
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
                   />
-                  <div className="w-10 h-5 bg-surface-variant border border-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-neon-cyan after:border-surface-variant after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container/20 peer-checked:border-neon-cyan/50 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"></div>
-                </label>
-              </div>
-            </div>
 
-            {/* Action Button */}
-            <button 
-              onClick={handleUpload}
-              disabled={!file || uploading || status === 'pending' || status === 'processing'}
-              className="w-full mt-6 bg-neon-cyan/10 hover:bg-neon-cyan text-neon-cyan hover:text-background font-code-snippet font-bold text-[11px] py-4 rounded hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] disabled:opacity-40 disabled:hover:shadow-none transition-all duration-300 relative overflow-hidden group border border-neon-cyan uppercase tracking-widest"
-            >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined text-[16px]">electric_bolt</span>
-                {uploading ? 'PROCESSING CORE...' : 'INITIALIZE PROTECTION'}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom Row: Terminal Log (Span 12) */}
-        <div className="lg:col-span-12">
-          <div className="bg-black border border-neon-cyan/30 rounded overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.8)] flex flex-col h-[220px]">
-            {/* Terminal Header */}
-            <div className="bg-surface-container-highest/90 px-4 py-2 flex items-center justify-between border-b border-neon-cyan/30">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-neon-cyan text-[14px]">terminal</span>
-                <span className="font-code-snippet text-[10px] text-neon-cyan tracking-widest uppercase">Defense Execution Log // STDOUT</span>
-              </div>
-              <div className="flex gap-2">
-                <div className="w-2.5 h-2.5 bg-neon-cyan border border-neon-cyan/50 shadow-[0_0_8px_rgba(0,240,255,0.8)] animate-pulse"></div>
-              </div>
-            </div>
-            {/* Terminal Content */}
-            <div className="p-4 flex-1 overflow-y-auto font-code-snippet text-[12px] leading-relaxed text-on-surface/90 font-medium space-y-1">
-              {logs.map((log, index) => (
-                <div key={index} className="flex gap-4">
-                  <span className="text-neon-cyan/40 shrink-0 select-none">{log.time}</span>
-                  <span className={
-                    log.type === 'success' ? 'text-neon-cyan' : 
-                    log.type === 'error' ? 'text-neon-red' : 
-                    log.type === 'system' ? 'text-secondary-fixed-dim' : 'text-on-surface-variant'
-                  }>
-                    {log.text}
-                  </span>
+                  {previewUrl ? (
+                    <div className="flex flex-col items-center gap-4 w-full">
+                      <img
+                        src={previewUrl}
+                        alt="Selected Payload"
+                        className="w-44 h-44 object-cover rounded-2xl border border-slate-200 shadow-md"
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900 truncate max-w-[200px]">{file.name}</span>
+                        <span className="text-[11px] text-slate-500 font-mono">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          triggerReset();
+                        }}
+                        className="text-xs text-red-600 hover:text-red-700 font-semibold underline underline-offset-4"
+                      >
+                        Change Image
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                        <Upload className="w-7 h-7" />
+                      </div>
+                      <div className="font-bold text-slate-900 text-base">Drop your photo here</div>
+                      <p className="text-xs text-slate-500 max-w-xs">
+                        Supports JPEG, PNG, WebP up to 25MB. High-resolution portrait photos recommended.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ))}
-              <div ref={terminalEndRef}></div>
+
+                {/* Preset Selector Card */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col gap-5">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                      <Sliders className="w-4 h-4 text-emerald-600" /> Disruption Strength Preset
+                    </span>
+                    <span className="text-xs font-mono font-bold text-emerald-600">{presetName} Mode</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 text-xs font-semibold">
+                    {['Light', 'Balanced', 'Aggressive'].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPresetName(p)}
+                        className={`py-2.5 px-3 rounded-xl transition-all ${
+                          presetName === p
+                            ? 'bg-slate-900 text-white shadow-sm font-bold'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Preset Spec Description */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1.5">
+                    {presetName === 'Light' && (
+                      <p><strong>Light Preset:</strong> SSIM Target ≥ 0.95. Sub-pixel landmark warp (0.5% face width). Maximum visual fidelity for clean portraits.</p>
+                    )}
+                    {presetName === 'Balanced' && (
+                      <p><strong>Balanced Preset:</strong> SSIM Target ≥ 0.92. Recommended balance between visual quality and facial alignment disruption.</p>
+                    )}
+                    {presetName === 'Aggressive' && (
+                      <p><strong>Aggressive Preset:</strong> SSIM Target ≥ 0.90. Maximum landmark displacement & Y-channel frequency disruption for high-risk uploads.</p>
+                    )}
+                  </div>
+
+                  {/* Optional Grid Checkbox */}
+                  <label className="flex items-center gap-3 cursor-pointer select-none text-xs font-semibold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={enableGrid}
+                      onChange={(e) => setEnableGrid(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                    />
+                    Enable optional spatial grid layer
+                  </label>
+
+                  {/* Submit Button */}
+                  <button
+                    type="button"
+                    onClick={handleProtect}
+                    disabled={!file || uploading}
+                    className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 text-sm"
+                  >
+                    {uploading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+                        Executing Disruption Pipeline...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="w-4 h-4 text-emerald-400" />
+                        Run Protection Engine
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Column: Processing Output & Inspection */}
+              <div className="lg:col-span-6 flex flex-col gap-6">
+                {protectedUrl && previewUrl ? (
+                  <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col gap-5">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Protection Complete
+                      </span>
+                      {processingTimeMs && (
+                        <span className="text-xs font-mono font-bold text-slate-600">
+                          {processingTimeMs} ms
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Image Compare Component */}
+                    <ImageCompare originalUrl={previewUrl} protectedUrl={protectedUrl} />
+
+                    {/* Metrics Summary Chips */}
+                    {metrics && (
+                      <div className="grid grid-cols-4 gap-2 pt-2 text-center text-xs">
+                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                          <div className="text-[10px] font-mono text-slate-500 uppercase font-semibold">SSIM</div>
+                          <div className="font-mono font-bold text-emerald-600">
+                            {metrics.ssim_score?.toFixed(4) || 'N/A'}
+                          </div>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                          <div className="text-[10px] font-mono text-slate-500 uppercase font-semibold">PSNR</div>
+                          <div className="font-mono font-bold text-slate-900">
+                            {metrics.psnr_score?.toFixed(1) || 'N/A'} dB
+                          </div>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                          <div className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Avg Y-NPR</div>
+                          <div className="font-mono font-bold text-emerald-600">
+                            {metrics.avg_y_npr?.toFixed(1) || 'N/A'}%
+                          </div>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                          <div className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Guardrail</div>
+                          <div className="font-mono font-bold text-emerald-600">
+                            {metrics.guardrail_satisfied ? 'Passed' : 'Adjusted'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center min-h-[480px] gap-4">
+                    {uploading ? (
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="w-16 h-16 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin"></div>
+                        <h3 className="font-bold text-slate-900 text-lg">Processing Photo</h3>
+                        <p className="text-xs text-slate-500 max-w-xs">
+                          Executing YuNet detection, relative soft-masked warping, Y-channel DCT perturbation, and SSIM guardrail verification...
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
+                          <FileImage className="w-8 h-8" />
+                        </div>
+                        <h3 className="font-bold text-slate-900 text-base">No Protection Result Yet</h3>
+                        <p className="text-xs text-slate-500 max-w-xs">
+                          Select a photo on the left, choose your disruption preset, and click "Run Protection Engine" to inspect results.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </main>
         </div>
       </div>
     </div>

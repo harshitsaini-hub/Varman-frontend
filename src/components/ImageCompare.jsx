@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Split, Eye, Activity, Search, Shield, Sliders } from 'lucide-react';
 
 const ImageCompare = ({ originalUrl, protectedUrl }) => {
   const [mode, setMode] = useState('split'); // 'split' | 'heatmap' | 'lens'
@@ -7,38 +8,33 @@ const ImageCompare = ({ originalUrl, protectedUrl }) => {
   const [amplification, setAmplification] = useState(15);
   const [lensPos, setLensPos] = useState({ x: 50, y: 50 });
   const [heatmapLoaded, setHeatmapLoaded] = useState(false);
-  
+
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const origImgRef = useRef(null);
   const protImgRef = useRef(null);
 
-  // Handle Dragging for Split Slider
   const handleMove = (clientX, clientY) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
     const y = Math.max(0, Math.min(clientY - rect.top, rect.height));
-    
+
     setSliderPosition((x / rect.width) * 100);
     setLensPos({
       x: (x / rect.width) * 100,
-      y: (y / rect.height) * 100
+      y: (y / rect.height) * 100,
     });
   };
 
   const onMouseMove = (e) => {
-    if (mode === 'lens') {
-      handleMove(e.clientX, e.clientY);
-    } else if (isDragging) {
+    if (mode === 'lens' || isDragging) {
       handleMove(e.clientX, e.clientY);
     }
   };
 
   const onTouchMove = (e) => {
-    if (mode === 'lens') {
-      handleMove(e.touches[0].clientX, e.touches[0].clientY);
-    } else if (isDragging) {
+    if (mode === 'lens' || isDragging) {
       handleMove(e.touches[0].clientX, e.touches[0].clientY);
     }
   };
@@ -60,7 +56,6 @@ const ImageCompare = ({ originalUrl, protectedUrl }) => {
     };
   }, [isDragging, mode]);
 
-  // Compute Heatmap on Offscreen Canvas
   const generateHeatmap = useCallback(() => {
     if (!originalUrl || !protectedUrl || !canvasRef.current) return;
 
@@ -94,11 +89,12 @@ const ImageCompare = ({ originalUrl, protectedUrl }) => {
     canvas.width = width;
     canvas.height = height;
 
-    // Draw images to hidden canvases to extract ImageData
     const c1 = document.createElement('canvas');
     const c2 = document.createElement('canvas');
-    c1.width = width; c1.height = height;
-    c2.width = width; c2.height = height;
+    c1.width = width;
+    c1.height = height;
+    c2.width = width;
+    c2.height = height;
 
     const ctx1 = c1.getContext('2d');
     const ctx2 = c2.getContext('2d');
@@ -117,23 +113,20 @@ const ImageCompare = ({ originalUrl, protectedUrl }) => {
       const dg = Math.abs(data1[i + 1] - data2[i + 1]);
       const db = Math.abs(data1[i + 2] - data2[i + 2]);
 
-      // Calculate perturbation intensity
       const diffSum = (dr + dg + db) / 3;
       const ampDiff = Math.min(255, diffSum * amplification);
 
       if (ampDiff < 5) {
-        // Dark background for zero noise
-        out[i] = 10;
-        out[i + 1] = 12;
-        out[i + 2] = 22;
+        out[i] = 248;
+        out[i + 1] = 250;
+        out[i + 2] = 252;
         out[i + 3] = 255;
       } else {
-        // Cyberpunk heatmap gradient: Neon Cyan -> Purple -> Yellow
         const norm = ampDiff / 255;
-        out[i] = Math.floor(norm * 255);                     // R (Red/Magenta)
-        out[i + 1] = Math.floor((1 - Math.abs(norm - 0.5) * 2) * 240); // G (Neon Green/Cyan)
-        out[i + 2] = Math.floor((1 - norm) * 255);           // B (Cyan/Blue)
-        out[i + 3] = 255;                                    // Alpha
+        out[i] = Math.floor(norm * 220);
+        out[i + 1] = Math.floor((1 - Math.abs(norm - 0.5) * 2) * 180);
+        out[i + 2] = Math.floor((1 - norm) * 200);
+        out[i + 3] = 255;
       }
     }
 
@@ -146,53 +139,52 @@ const ImageCompare = ({ originalUrl, protectedUrl }) => {
   }, [generateHeatmap]);
 
   return (
-    <div className="flex flex-col gap-3 w-full max-w-xl mx-auto">
+    <div className="flex flex-col gap-3 w-full max-w-xl mx-auto font-sans">
       {/* Mode Controls Toolbar */}
-      <div className="flex items-center justify-between bg-surface-container-high/80 backdrop-blur-md p-1.5 rounded-lg border border-outline-variant/40 font-code-snippet text-xs">
+      <div className="flex items-center justify-between bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm text-xs">
         <div className="flex gap-1">
           <button
             type="button"
             onClick={() => setMode('split')}
-            className={`px-3 py-1.5 rounded transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-1.5 ${
               mode === 'split'
-                ? 'bg-primary-container text-on-primary-container font-semibold shadow-[0_0_10px_rgba(0,240,255,0.2)]'
-                : 'text-on-surface-variant hover:text-white'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="material-symbols-outlined text-[14px]">split_scene</span>
+            <Split className="w-3.5 h-3.5" />
             Split Slider
           </button>
 
           <button
             type="button"
             onClick={() => setMode('heatmap')}
-            className={`px-3 py-1.5 rounded transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-1.5 ${
               mode === 'heatmap'
-                ? 'bg-primary-container text-on-primary-container font-semibold shadow-[0_0_10px_rgba(0,240,255,0.2)]'
-                : 'text-on-surface-variant hover:text-white'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="material-symbols-outlined text-[14px]">equalizer</span>
-            Adversarial Heatmap
+            <Activity className="w-3.5 h-3.5" />
+            Difference Heatmap
           </button>
 
           <button
             type="button"
             onClick={() => setMode('lens')}
-            className={`px-3 py-1.5 rounded transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-1.5 ${
               mode === 'lens'
-                ? 'bg-primary-container text-on-primary-container font-semibold shadow-[0_0_10px_rgba(0,240,255,0.2)]'
-                : 'text-on-surface-variant hover:text-white'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="material-symbols-outlined text-[14px]">search</span>
+            <Search className="w-3.5 h-3.5" />
             Noise Lens
           </button>
         </div>
 
-        {/* Amplification Slider (Visible in Heatmap & Lens mode) */}
         {mode !== 'split' && (
-          <div className="flex items-center gap-2 px-2 text-[11px] text-neon-cyan">
+          <div className="flex items-center gap-2 px-2 text-xs font-semibold text-slate-700">
             <span>Amp: {amplification}x</span>
             <input
               type="range"
@@ -200,13 +192,13 @@ const ImageCompare = ({ originalUrl, protectedUrl }) => {
               max="40"
               value={amplification}
               onChange={(e) => setAmplification(Number(e.target.value))}
-              className="w-16 accent-neon-cyan cursor-pointer"
+              className="w-16 accent-emerald-600 cursor-pointer"
             />
           </div>
         )}
       </div>
 
-      {/* Main Interactive Stage */}
+      {/* Main Stage */}
       <div
         ref={containerRef}
         onMouseDown={(e) => {
@@ -226,16 +218,14 @@ const ImageCompare = ({ originalUrl, protectedUrl }) => {
             handleMove(e.clientX, e.clientY);
           }
         }}
-        className="relative w-full aspect-square overflow-hidden rounded-xl border border-outline-variant/50 select-none shadow-2xl bg-surface-container-dark"
+        className="relative w-full aspect-square overflow-hidden rounded-2xl border border-slate-200 select-none shadow-md bg-slate-900"
         style={{ cursor: mode === 'split' ? (isDragging ? 'grabbing' : 'grab') : 'crosshair' }}
       >
-        {/* Hidden Compute Canvas */}
         <canvas ref={canvasRef} className="hidden" />
 
         {/* MODE 1: Split Slider */}
         {mode === 'split' && (
           <>
-            {/* Background: Original Image */}
             <img
               ref={origImgRef}
               src={originalUrl}
@@ -243,56 +233,54 @@ const ImageCompare = ({ originalUrl, protectedUrl }) => {
               className="absolute inset-0 w-full h-full object-cover block"
               draggable={false}
             />
-            <div className="absolute top-3 right-3 bg-surface/80 backdrop-blur-sm border border-outline/30 px-2.5 py-1 rounded text-[11px] font-code-snippet z-10 text-on-surface">
-              Original Payload
+            <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md border border-slate-700 px-3 py-1 rounded-lg text-xs font-semibold z-10 text-white shadow-sm">
+              Original Photo
             </div>
 
-            {/* Foreground: Protected Image */}
             <img
               ref={protImgRef}
               src={protectedUrl}
               alt="Protected"
               className="absolute inset-0 w-full h-full object-cover block z-10"
               style={{
-                clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)`
+                clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)`,
               }}
               draggable={false}
             />
-            <div className="absolute top-3 left-3 bg-primary-container/90 border border-neon-cyan px-2.5 py-1 rounded text-[11px] font-code-snippet z-20 text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]">
+            <div className="absolute top-3 left-3 bg-emerald-600 border border-emerald-500 px-3 py-1 rounded-lg text-xs font-bold z-20 text-white shadow-md">
               Varman Protected
             </div>
 
-            {/* Divider Line */}
+            {/* Split Divider */}
             <div
-              className="absolute top-0 bottom-0 w-[2px] bg-neon-cyan z-30 shadow-[0_0_12px_#00f0ff]"
+              className="absolute top-0 bottom-0 w-[2px] bg-emerald-500 z-30 shadow-lg"
               style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
             >
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface-container-high border-2 border-neon-cyan flex items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.5)]">
-                <span className="material-symbols-outlined text-neon-cyan text-sm">unfold_more</span>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900 border-2 border-emerald-500 flex items-center justify-center shadow-lg text-emerald-400">
+                ↔
               </div>
             </div>
           </>
         )}
 
-        {/* MODE 2: Full Adversarial Heatmap */}
+        {/* MODE 2: Heatmap */}
         {mode === 'heatmap' && (
           <div className="relative w-full h-full">
             <img
               src={canvasRef.current ? canvasRef.current.toDataURL() : protectedUrl}
               alt="Adversarial Noise Heatmap"
-              className="w-full h-full object-cover block animate-fade-in"
+              className="w-full h-full object-cover block"
             />
-            <div className="absolute top-3 left-3 bg-surface-container-high/90 border border-secondary px-2.5 py-1 rounded text-[11px] font-code-snippet z-20 text-secondary shadow-[0_0_10px_rgba(189,0,255,0.3)] flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-              Adversarial Perturbation Map ({amplification}x Amp)
+            <div className="absolute top-3 left-3 bg-slate-900/90 border border-slate-700 px-3 py-1 rounded-lg text-xs font-semibold z-20 text-emerald-400 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Perturbation Delta ({amplification}x Amp)
             </div>
           </div>
         )}
 
-        {/* MODE 3: Interactive Noise Lens */}
+        {/* MODE 3: Lens */}
         {mode === 'lens' && (
           <div className="relative w-full h-full">
-            {/* Base Image: Protected */}
             <img
               src={protectedUrl}
               alt="Protected Base"
@@ -300,41 +288,25 @@ const ImageCompare = ({ originalUrl, protectedUrl }) => {
               draggable={false}
             />
 
-            {/* Circular Magnifier Lens Overlay displaying Heatmap */}
             <div
-              className="absolute w-36 h-36 rounded-full border-2 border-neon-cyan shadow-[0_0_25px_rgba(0,240,255,0.6)] pointer-events-none z-30 overflow-hidden"
+              className="absolute w-36 h-36 rounded-full border-2 border-emerald-500 shadow-xl pointer-events-none z-30 overflow-hidden"
               style={{
                 top: `${lensPos.y}%`,
                 left: `${lensPos.x}%`,
                 transform: 'translate(-50%, -50%)',
                 backgroundImage: `url(${canvasRef.current ? canvasRef.current.toDataURL() : originalUrl})`,
                 backgroundPosition: `${lensPos.x}% ${lensPos.y}%`,
-                backgroundSize: '400px 400px'
+                backgroundSize: '400px 400px',
               }}
             >
-              <div className="absolute inset-0 bg-neon-cyan/10 pointer-events-none"></div>
-              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-black/80 px-1.5 py-0.5 rounded text-[9px] font-code-snippet text-neon-cyan tracking-widest uppercase">
-                Noise Delta
-              </div>
+              <div className="absolute inset-0 bg-emerald-500/10 pointer-events-none"></div>
             </div>
 
-            <div className="absolute top-3 left-3 bg-surface-container-high/90 border border-outline-variant px-2.5 py-1 rounded text-[11px] font-code-snippet z-20 text-on-surface-variant flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-xs text-neon-cyan">ads_click</span>
-              Hover / Drag cursor to inspect pixel delta
+            <div className="absolute top-3 left-3 bg-slate-900/90 border border-slate-700 px-3 py-1 rounded-lg text-xs font-semibold z-20 text-white">
+              Drag cursor to inspect sub-pixel noise
             </div>
           </div>
         )}
-      </div>
-
-      {/* Legend / Status Footer */}
-      <div className="flex items-center justify-between text-[11px] font-code-snippet text-on-surface-variant/70 px-1">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-neon-cyan"></span>
-          <span>L∞ Bound Clamp ($\epsilon = 0.0313$)</span>
-        </div>
-        <div>
-          {mode === 'heatmap' ? 'Heatmap: Amplified |Original - Protected|' : mode === 'lens' ? 'Lens: Realtime Spectral Noise Inspection' : 'Slide to compare human visual fidelity'}
-        </div>
       </div>
     </div>
   );
