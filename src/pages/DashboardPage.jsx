@@ -159,7 +159,7 @@ const DashboardPage = () => {
                 <div className="flex justify-between font-semibold text-slate-700 mb-1.5">
                   <span className="flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    Facial Landmark Shift ($\Delta\text{px}$)
+                    Facial Landmark Shift (Δpx)
                   </span>
                   <span className="font-mono text-slate-900 font-bold">4.8px Shift / 5.0px Max</span>
                 </div>
