@@ -1,14 +1,14 @@
 import { useState, useContext } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import WebThreads from '../components/WebThreads/WebThreads';
-import { Shield, Key, Mail, User as UserIcon, LogIn, UserPlus } from 'lucide-react';
+import { Shield, Lock, Mail, User as UserIcon, LogIn, UserPlus, Check } from 'lucide-react';
 
 const AuthPage = () => {
   const { user, login, register } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [rememberDevice, setRememberDevice] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState('login'); // 'login' | 'register'
@@ -48,27 +48,26 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center font-sans overflow-hidden relative w-full selection:bg-emerald-100 selection:text-emerald-900">
-      {/* ── React Bits WebThreads Background Canvas ────────────────────────── */}
-      <div className="absolute inset-0 z-0 opacity-80 pointer-events-auto">
-        <WebThreads
-          color1="#059669"
-          color2="#10b981"
-          color3="#0f172a"
-          speed={0.25}
-          threadCount={7}
-          frequency={4.5}
-          spread={0.22}
-          glow={0.03}
-          falloff={0.65}
-          thickness={1.2}
-          brightness={0.7}
-          opacity={0.85}
-          mouseInteraction={true}
-          mouseStrength={0.4}
-        />
-      </div>
+      {/* ── MaterialM Mesh Gradient Animated Background ─────────────────── */}
+      <div 
+        className="absolute inset-0 z-0 opacity-90"
+        style={{
+          background: 'linear-gradient(-45deg, rgba(5, 150, 105, 0.12), rgba(241, 245, 249, 0.9), rgba(16, 185, 129, 0.15), rgba(15, 23, 42, 0.08))',
+          backgroundSize: '400% 400%',
+          animation: 'materialmGradient 12s ease infinite',
+        }}
+      ></div>
 
-      {/* Subtle Hairline Grid Overlay */}
+      {/* Inject MaterialM Keyframes */}
+      <style>{`
+        @keyframes materialmGradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+
+      {/* Grid Overlay */}
       <div
         className="absolute inset-0 z-0 pointer-events-none opacity-5"
         style={{
@@ -78,124 +77,128 @@ const AuthPage = () => {
         }}
       ></div>
 
-      {/* Main Form Container Card */}
+      {/* ── MaterialM Auth Card ─────────────────────────────────────────── */}
       <main className="w-full max-w-md px-6 z-10 relative py-12">
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 sm:p-10 flex flex-col items-center border border-slate-200/80 shadow-2xl shadow-slate-900/10">
-          {/* Logo Badge */}
-          <Link to="/" className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mb-5 shadow-sm hover:scale-105 transition-transform">
-            <Shield className="w-7 h-7 text-emerald-600" />
+        <div className="bg-white rounded-2xl p-8 sm:p-10 border border-slate-200/90 shadow-xl shadow-slate-900/5 flex flex-col items-center">
+          {/* Brand Logo & Header */}
+          <Link to="/" className="flex items-center gap-2 mb-3 hover:opacity-80 transition-opacity">
+            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-sm">
+              <Shield className="w-5 h-5 text-emerald-400" />
+            </div>
+            <span className="font-extrabold text-2xl tracking-tight text-slate-900">VARMAN</span>
           </Link>
 
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight text-center">
-            {mode === 'login' ? 'Welcome Back to Varman' : 'Create Varman Account'}
-          </h1>
-          <p className="text-xs text-slate-500 mb-6 text-center font-medium mt-1">
-            {mode === 'login' ? 'Sign in to access your protected image vault' : 'Register to start protecting your photos'}
+          <p className="text-xs text-slate-500 mb-6 text-center font-medium">
+            {mode === 'login' ? 'Sign In to Varman Protection Console' : 'Create an account to protect your photos'}
           </p>
 
           {error && (
-            <div className="w-full p-3.5 mb-5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium text-center">
+            <div className="w-full p-3.5 mb-5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold text-center">
               {error}
             </div>
           )}
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="w-full space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5" htmlFor="email">
-                <Mail className="w-3.5 h-3.5 text-emerald-600" /> Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
             {mode === 'register' && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5" htmlFor="displayName">
-                  <UserIcon className="w-3.5 h-3.5 text-emerald-600" /> Display Name / Username
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5" htmlFor="displayName">
+                  Full Name / Alias
                 </label>
-                <input
-                  type="text"
-                  id="displayName"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-                  placeholder="Operator Name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  maxLength={100}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="displayName"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-3.5 pr-10 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                    placeholder="John Doe"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    maxLength={100}
+                  />
+                  <UserIcon className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+                </div>
               </div>
             )}
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5" htmlFor="password">
-                <Key className="w-3.5 h-3.5 text-emerald-600" /> Password
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5" htmlFor="email">
+                Email Address
               </label>
-              <input
-                type="password"
-                id="password"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-                placeholder="••••••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <input
+                  type="email"
+                  id="email"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-3.5 pr-10 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <Mail className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+              </div>
             </div>
 
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5" htmlFor="password">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  id="password"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-3.5 pr-10 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+              </div>
+            </div>
+
+            {mode === 'login' && (
+              <div className="flex items-center justify-between text-xs pt-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600 font-medium">
+                  <input
+                    type="checkbox"
+                    checked={rememberDevice}
+                    onChange={(e) => setRememberDevice(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                  />
+                  Remember this Device
+                </label>
+                <span className="text-emerald-600 hover:text-emerald-700 font-semibold cursor-pointer">
+                  Forgot Password?
+                </span>
+              </div>
+            )}
+
             <button
-              className="w-full bg-slate-900 text-white font-semibold py-3.5 rounded-xl hover:bg-slate-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 mt-5 text-xs shadow-md"
+              className="w-full bg-slate-900 text-white hover:bg-slate-800 font-bold py-3.5 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 mt-5 text-xs"
               type="submit"
               disabled={loading}
             >
               {mode === 'login' ? <LogIn className="w-4 h-4 text-emerald-400" /> : <UserPlus className="w-4 h-4 text-emerald-400" />}
               {mode === 'login'
-                ? (loading ? 'Authenticating...' : 'Sign In to Dashboard')
-                : (loading ? 'Registering...' : 'Create Account & Sign In')
+                ? (loading ? 'Signing in...' : 'Sign In')
+                : (loading ? 'Creating Account...' : 'Sign Up')
               }
             </button>
           </form>
 
-          {mode === 'login' && (
-            <div className="mt-6 text-center">
-              <p className="text-slate-500 text-xs font-medium mb-1">
-                Don't have an account yet?
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('register');
-                  setError('');
-                }}
-                className="text-emerald-600 hover:text-emerald-700 transition-colors text-xs font-bold underline underline-offset-4"
-              >
-                Register a new account
-              </button>
-            </div>
-          )}
-
-          {mode === 'register' && (
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('login');
-                  setError('');
-                }}
-                className="text-slate-600 hover:text-slate-900 transition-colors text-xs font-semibold underline underline-offset-4"
-              >
-                Back to Sign In
-              </button>
-            </div>
-          )}
-
-          <div className="mt-8 flex items-center gap-2 text-[11px] font-semibold text-slate-500">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            AES-256 Client-Side Key Derivation Active
+          {/* Mode Switch Footer */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium mt-6 pt-6 border-t border-slate-100 w-full justify-center">
+            <span>{mode === 'login' ? 'New to Varman?' : 'Already have an account?'}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === 'login' ? 'register' : 'login');
+                setError('');
+              }}
+              className="text-emerald-600 hover:text-emerald-700 font-bold underline underline-offset-4 ml-1"
+            >
+              {mode === 'login' ? 'Create an account' : 'Sign in'}
+            </button>
           </div>
         </div>
       </main>
