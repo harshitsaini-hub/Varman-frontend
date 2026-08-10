@@ -2,13 +2,14 @@ import { useState, useContext } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import WebThreads from '../components/WebThreads/WebThreads';
-import { Shield, Lock, Mail, User as UserIcon, LogIn, UserPlus } from 'lucide-react';
+import { Shield, Lock, Mail, User as UserIcon, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 const AuthPage = () => {
   const { user, login, register } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -146,7 +147,7 @@ const AuthPage = () => {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-3.5 pr-10 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
                   placeholder="••••••••••••"
@@ -154,7 +155,14 @@ const AuthPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-                <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                  title={showPassword ? 'Hide Password' : 'Show Password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
