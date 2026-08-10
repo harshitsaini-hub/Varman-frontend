@@ -19,7 +19,7 @@ const HeroDemoCard = () => {
       <div className="flex items-center justify-between border-b border-slate-100 pb-4">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="text-xs font-mono font-bold text-slate-900 uppercase tracking-wider">
+          <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
             Live Engine Simulator
           </span>
         </div>
