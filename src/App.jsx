@@ -9,11 +9,8 @@ import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import UploadPage from './pages/UploadPage';
 import GalleryPage from './pages/GalleryPage';
-import AboutPage from './pages/AboutPage';
-import ForensicPage from './pages/ForensicPage';
-import ErrorBoundary from './components/ErrorBoundary';
-
 import EngineSpecPage from './pages/EngineSpecPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -47,8 +44,6 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
       <Route path="/gallery" element={<ProtectedRoute><GalleryPage /></ProtectedRoute>} />
-      <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
-      <Route path="/forensic" element={<ProtectedRoute><ForensicPage /></ProtectedRoute>} />
       
       {/* Default route */}
       <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
@@ -66,23 +61,23 @@ const App = () => {
             position="bottom-right" 
             toastOptions={{
               style: {
-                background: 'var(--bg-panel)',
-                color: 'var(--text-main)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
+                background: '#0F172A',
+                color: '#FFFFFF',
+                border: '1px solid #334155',
+                borderRadius: '12px',
                 padding: '12px 16px',
-                fontSize: '0.9rem',
+                fontSize: '0.85rem',
               },
               success: {
                 iconTheme: {
-                  primary: 'var(--accent-cyan)',
-                  secondary: 'var(--bg-dark)',
+                  primary: '#10B981',
+                  secondary: '#0F172A',
                 },
               },
               error: {
                 iconTheme: {
-                  primary: 'var(--danger)',
-                  secondary: 'var(--bg-dark)',
+                  primary: '#EF4444',
+                  secondary: '#0F172A',
                 },
               },
             }} 
