@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api';
-import { Shield, LayoutDashboard, Folder, FlaskConical, FileText, LogOut, ChevronDown, Trash2, UserX, Cpu } from 'lucide-react';
+import { Shield, LayoutDashboard, Folder, LogOut, ChevronDown, Trash2, UserX } from 'lucide-react';
 
 const Sidebar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -123,11 +123,6 @@ const Sidebar = () => {
         <NavLink to="/gallery" className={getLinkClass}>
           <Folder className="w-4 h-4" />
           <span>Asset Vault</span>
-        </NavLink>
-
-        <NavLink to="/spec" className={getLinkClass}>
-          <FileText className="w-4 h-4" />
-          <span>Engine Spec</span>
         </NavLink>
       </nav>
 
