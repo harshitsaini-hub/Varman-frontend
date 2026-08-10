@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api';
-import { Shield, LayoutDashboard, Folder, LogOut, ChevronDown, Trash2, UserX } from 'lucide-react';
+import { Shield, LayoutDashboard, Folder, Power, ChevronDown, Trash2, UserX } from 'lucide-react';
 
 const Sidebar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -55,7 +55,7 @@ const Sidebar = () => {
   const displayName = user?.display_name || (user?.email ? user.email.split('@')[0] : 'Operator');
 
   return (
-    <aside className="hidden md:flex flex-col py-5 px-4 bg-white border-r border-slate-200 fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 selection:bg-emerald-100">
+    <aside className="hidden md:flex flex-col py-5 px-4 bg-white border-r border-slate-200 fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 selection:bg-emerald-100 font-sans">
       {/* User Profile Header Card */}
       <div className="mb-6 select-none">
         <div
@@ -126,7 +126,7 @@ const Sidebar = () => {
         </NavLink>
       </nav>
 
-      {/* Footer & Logout */}
+      {/* Footer & Power Button Logout */}
       <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -135,10 +135,10 @@ const Sidebar = () => {
 
         <button
           onClick={handleLogout}
-          className="p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+          className="p-2 rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
           title="Sign Out"
         >
-          <LogOut className="w-4 h-4" />
+          <Power className="w-4 h-4" />
         </button>
       </div>
     </aside>
