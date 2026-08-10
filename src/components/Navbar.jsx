@@ -14,37 +14,63 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-neon-cyan/20 h-16">
-      <div className="flex justify-between items-center px-6 h-16 w-full max-w-container-max mx-auto">
+    <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 h-16">
+      <div className="flex justify-between items-center px-6 h-16 w-full max-w-7xl mx-auto">
         <div className="flex items-center gap-8">
-          <Link to="/dashboard" className="font-bold text-[24px] tracking-widest uppercase font-headline hover:opacity-90 transition-opacity duration-300 text-gradient">
+          <Link to="/" className="flex items-center gap-2 text-slate-900 font-extrabold text-xl tracking-tight hover:opacity-80 transition-opacity">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
             VARMAN
+            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600">
+              v2.0
+            </span>
           </Link>
-          <div className="hidden md:flex gap-6 h-full items-center">
-            <Link to="/dashboard" className="font-bold pb-1 h-full flex items-center text-xs tracking-widest uppercase hover:opacity-90 transition-opacity duration-300 text-gradient">
-              DEFENSE SHELL
-            </Link>
-          </div>
+          {user && (
+            <div className="hidden md:flex gap-6 h-full items-center">
+              <Link to="/dashboard" className="text-xs font-semibold tracking-wider text-slate-600 hover:text-slate-900 transition-colors uppercase">
+                Dashboard
+              </Link>
+              <Link to="/upload" className="text-xs font-semibold tracking-wider text-slate-600 hover:text-slate-900 transition-colors uppercase">
+                Protect Image
+              </Link>
+              <Link to="/gallery" className="text-xs font-semibold tracking-wider text-slate-600 hover:text-slate-900 transition-colors uppercase">
+                Vault
+              </Link>
+            </div>
+          )}
         </div>
+
         <div className="flex items-center gap-4">
-          <div className="relative hidden sm:block">
-            <input 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              className="bg-surface-container-highest/50 border border-neon-cyan/30 text-neon-cyan placeholder:text-neon-cyan/50 rounded px-4 py-1.5 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all w-80 text-[10px] tracking-wider font-code-snippet" 
-              placeholder="Search assets..." 
-              type="text" 
-            />
-            <span className="material-symbols-outlined absolute right-2 top-2.5 text-neon-cyan/70 text-[14px]">search</span>
-          </div>
-          <div className="hidden md:flex flex-col text-right">
-            <span className="text-[11px] text-on-surface font-semibold font-code-snippet">{user?.display_name || 'Operator'}</span>
-            <span className="text-[9px] text-on-surface-variant/70 uppercase tracking-widest font-code-snippet">{user?.email || 'N/A'}</span>
-          </div>
-          <div className="w-8 h-8 rounded overflow-hidden border border-neon-cyan/50 flex items-center justify-center bg-surface-container-highest">
-            <span className="material-symbols-outlined text-neon-cyan/70">account_circle</span>
-          </div>
+          {user ? (
+            <>
+              <div className="relative hidden sm:block">
+                <input 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  className="bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-lg px-3.5 py-1.5 focus:outline-none focus:border-slate-400 focus:bg-white transition-all w-64 text-xs font-mono" 
+                  placeholder="Search protected images..." 
+                  type="text" 
+                />
+                <span className="material-symbols-outlined absolute right-2.5 top-2 text-slate-400 text-[16px]">search</span>
+              </div>
+              <div className="hidden md:flex flex-col text-right">
+                <span className="text-xs font-semibold text-slate-900">{user?.display_name || 'Operator'}</span>
+                <span className="text-[10px] font-mono text-slate-500">{user?.email || ''}</span>
+              </div>
+              <div className="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center bg-slate-100 text-slate-700">
+                <span className="material-symbols-outlined text-[20px]">account_circle</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link to="/login" className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3 py-2">
+                Sign In
+              </Link>
+              <Link to="/login" className="text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                Get Started
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </nav>

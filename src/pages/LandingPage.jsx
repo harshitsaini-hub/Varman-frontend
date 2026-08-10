@@ -1,7 +1,7 @@
-import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import LiquidEther from '../components/LiquidEther';
+import Navbar from '../components/Navbar';
 
 const LandingPage = () => {
   const { user } = useContext(AuthContext);
@@ -9,239 +9,164 @@ const LandingPage = () => {
 
   const handleCTA = () => {
     if (user) {
-      navigate('/dashboard');
+      navigate('/upload');
     } else {
       navigate('/login');
     }
   };
 
   return (
-    <div className="flex-grow flex flex-col relative z-10 w-full min-h-[calc(100vh-64px)] overflow-y-auto bg-[#09090b]">
-      {/* Ambient Background Mesh */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-25">
-        <LiquidEther
-          colors={[ '#00f0ff', '#1e293b', '#7c3aed', '#0284c7' ]}
-          mouseForce={30}
-          cursorSize={100}
-          isViscous={false}
-          viscous={25}
-          iterationsViscous={15}
-          iterationsPoisson={20}
-          resolution={0.3}
-          isBounce
-          autoDemo={true}
-          autoSpeed={0.5}
-          autoIntensity={2.0}
-          takeoverDuration={0.25}
-          autoResumeDelay={3000}
-          autoRampDuration={0.6}
-          BFECC={true}
-        />
-      </div>
-
-      {/* Subtle Hairline Grid Overlay */}
-      <div 
-        className="absolute inset-0 z-0 pointer-events-none opacity-4" 
-        style={{
-          backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px)',
-          backgroundSize: '40px 40px'
-        }}
-      ></div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+      <Navbar />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 pt-16 pb-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10 w-full border-b border-white/[0.08]">
-        {/* Left Side Info */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
-          {/* Status Pill Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 w-fit backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_8px_#00f0ff]"></span>
-            <span className="font-code-snippet text-xs text-on-surface-variant tracking-wider uppercase">
-              VARMAN v2.0 · Adversarial Protection Engine
-            </span>
+      <main className="flex-grow pt-24 pb-16">
+        <section className="max-w-7xl mx-auto px-6 md:px-12 pt-8 pb-16">
+          <div className="max-w-3xl">
+            {/* Status Pill */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-mono mb-6">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+              VARMAN 2.0 · PRACTICAL FACE DISRUPTION
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6">
+              Make your photos <br />
+              <span className="text-emerald-700 underline decoration-emerald-300 decoration-wavy underline-offset-8">
+                annoying and expensive
+              </span>{' '}
+              to steal.
+            </h1>
+
+            <p className="text-lg text-slate-600 leading-relaxed mb-8 max-w-2xl font-normal">
+              There is no permanent 100% magic bullet in AI safety—this is an asymmetric arms race. 
+              Varman applies targeted micro-geometric warps and Y-channel frequency disruptions to your photos 
+              before you post them online. It raises the computational cost for face scrapers and deepfake tools 
+              while keeping images visually pristine to human eyes.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-4 mb-12">
+              <button
+                onClick={handleCTA}
+                className="bg-slate-900 text-white hover:bg-slate-800 font-semibold px-6 py-3.5 rounded-xl transition-all shadow-sm flex items-center gap-2 text-sm"
+              >
+                <span className="material-symbols-outlined text-[18px]">shield</span>
+                {user ? 'Protect an Image' : 'Start Protecting Photos'}
+              </button>
+              <a
+                href="#how-it-works"
+                className="bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 font-semibold px-6 py-3.5 rounded-xl transition-all text-sm flex items-center gap-2"
+              >
+                How It Works
+                <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
+              </a>
+            </div>
+
+            {/* Honest Highlights Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 border-t border-slate-200">
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <div className="text-2xl font-bold font-mono text-slate-900 mb-1">SSIM ≥ 0.90</div>
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Visual Fidelity</div>
+                <div className="text-xs text-slate-600">Guaranteed quality guardrail keeps your photos looking natural.</div>
+              </div>
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <div className="text-2xl font-bold font-mono text-slate-900 mb-1">Y-Channel DCT</div>
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">JPEG Resilience</div>
+                <div className="text-xs text-slate-600">Survives compression on social platforms like Instagram & WhatsApp.</div>
+              </div>
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <div className="text-2xl font-bold font-mono text-slate-900 mb-1">&lt; 1 sec</div>
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Pure CPU Pipeline</div>
+                <div className="text-xs text-slate-600">Fast ONNX face warping without requiring heavy GPU setups.</div>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
-            Protect Your Face From <br />
-            <span className="bg-gradient-to-r from-white via-neon-cyan to-secondary bg-clip-text text-transparent">
-              Generative AI Cloning
-            </span>
-          </h1>
+        {/* How It Works Section */}
+        <section id="how-it-works" className="bg-white border-y border-slate-200 py-16">
+          <div className="max-w-7xl mx-auto px-6 md:px-12">
+            <div className="max-w-2xl mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
+                How Varman Slows Down AI Theft
+              </h2>
+              <p className="text-slate-600 text-sm">
+                Instead of making impossible claims, Varman uses a 4-step practical protection engine.
+              </p>
+            </div>
 
-          <p className="text-base text-on-surface-variant/90 max-w-xl leading-relaxed font-body">
-            Public photos are scraped daily to train AI checkpoints and face-swapping pipelines. 
-            Varman injects mathematical noise boundaries into your photos—disrupting 
-            synthetic deepfakes at the source while keeping images visually pristine.
-          </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="p-6 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="w-8 h-8 rounded-lg bg-slate-900 text-white font-mono font-bold flex items-center justify-center text-sm mb-4">
+                  01
+                </div>
+                <h3 className="font-bold text-slate-900 mb-2 text-base">YuNet Landmark Detection</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Identifies 5-point facial landmark coordinates (eyes, nose, mouth) using lightweight YuNet ONNX.
+                </p>
+              </div>
 
-          <div className="flex flex-wrap items-center gap-4 mt-2">
-            <button 
+              <div className="p-6 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="w-8 h-8 rounded-lg bg-slate-900 text-white font-mono font-bold flex items-center justify-center text-sm mb-4">
+                  02
+                </div>
+                <h3 className="font-bold text-slate-900 mb-2 text-base">Soft-Masked Micro-Warp</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Applies subtle sub-pixel landmark displacements with Gaussian falloff to confuse facial alignment steps in face-swappers.
+                </p>
+              </div>
+
+              <div className="p-6 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="w-8 h-8 rounded-lg bg-slate-900 text-white font-mono font-bold flex items-center justify-center text-sm mb-4">
+                  03
+                </div>
+                <h3 className="font-bold text-slate-900 mb-2 text-base">Y-Channel DCT Shift</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Injects mid-frequency DCT perturbations into the luminance channel so perturbations survive JPEG re-encoding.
+                </p>
+              </div>
+
+              <div className="p-6 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="w-8 h-8 rounded-lg bg-slate-900 text-white font-mono font-bold flex items-center justify-center text-sm mb-4">
+                  04
+                </div>
+                <h3 className="font-bold text-slate-900 mb-2 text-base">Adaptive SSIM Guardrail</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Automatically measures Global SSIM and 1.2× Face SSIM to ensure your image never looks distorted to humans.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Realistic Framing Banner */}
+        <section className="max-w-7xl mx-auto px-6 md:px-12 py-16">
+          <div className="bg-slate-900 text-white rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="max-w-2xl">
+              <span className="text-xs font-mono text-emerald-400 uppercase tracking-wider">The Reality of AI Protection</span>
+              <h2 className="text-2xl sm:text-3xl font-bold mt-2 mb-4 text-white">
+                "We don't promise magic. We build friction."
+              </h2>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                Security is about raising the effort required to breach a target. By making your photos mathematically noisy for AI models, scrapers incur higher failure rates and alignment errors.
+              </p>
+            </div>
+            <button
               onClick={handleCTA}
-              className="bg-neon-cyan text-black font-semibold px-7 py-3.5 rounded-lg hover:bg-neon-cyan/90 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] active:scale-[0.98] transition-all text-xs tracking-wider font-code-snippet uppercase flex items-center gap-2 border border-neon-cyan"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl transition-colors text-sm whitespace-nowrap"
             >
-              <span className="material-symbols-outlined text-[18px]">shield</span>
-              Launch Defense Console
+              Protect Your First Photo
             </button>
-            <a 
-              href="#threats"
-              className="bg-white/[0.03] text-white font-medium px-7 py-3.5 rounded-lg hover:bg-white/[0.08] hover:border-white/20 transition-all text-xs tracking-wider font-code-snippet uppercase border border-white/10 flex items-center gap-2"
-            >
-              Learn Architecture
-              <span className="material-symbols-outlined text-[16px]">arrow_downward</span>
-            </a>
           </div>
+        </section>
+      </main>
 
-          {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/[0.08] max-w-xl">
-            <div className="flex flex-col">
-              <span className="font-code-snippet text-white text-xl font-bold tracking-tight">&gt; 98.4%</span>
-              <span className="text-[11px] text-on-surface-variant/70 font-code-snippet mt-1">SSIM Quality Index</span>
-            </div>
-            <div className="flex flex-col border-l border-white/[0.08] pl-4">
-              <span className="font-code-snippet text-neon-cyan text-xl font-bold tracking-tight">L∞ Bound</span>
-              <span className="text-[11px] text-on-surface-variant/70 font-code-snippet mt-1">Bounded Perturbation</span>
-            </div>
-            <div className="flex flex-col border-l border-white/[0.08] pl-4">
-              <span className="font-code-snippet text-white text-xl font-bold tracking-tight">AES-256</span>
-              <span className="text-[11px] text-on-surface-variant/70 font-code-snippet mt-1">Zero-Knowledge Vault</span>
-            </div>
-          </div>
+      {/* Minimal Footer */}
+      <footer className="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500 font-mono">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>VARMAN 2.0 · Practical Anti-Scraping Image Protection</div>
+          <div>CPU ONNX Engine · Open Source Architecture</div>
         </div>
-
-        {/* Right Side Interactive Demo Card */}
-        <div className="lg:col-span-5 relative w-full select-none">
-          <div className="glass-panel p-5 rounded-xl border border-white/10 bg-surface-container-high/60 backdrop-blur-xl shadow-2xl relative">
-            {/* Window Topbar */}
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-4 font-code-snippet text-xs text-on-surface-variant/80">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
-                <span className="ml-2 text-[11px]">varman_kernel.py</span>
-              </div>
-              <span className="text-[10px] text-neon-cyan bg-neon-cyan/10 px-2 py-0.5 rounded border border-neon-cyan/20">
-                ACTIVE
-              </span>
-            </div>
-
-            {/* Preview Image with Simulated Overlay */}
-            <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10 mb-4 bg-black/60">
-              <img 
-                src="/shield_fingerprint.jpg" 
-                alt="Adversarial Protection Demo" 
-                className="w-full h-full object-cover opacity-85"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
-              
-              {/* Simulated Scanning Reticle Overlay */}
-              <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] font-code-snippet text-neon-cyan bg-black/60 backdrop-blur-sm p-2 rounded border border-neon-cyan/30">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-neon-cyan animate-ping"></span>
-                  Adversarial Perturbation: Active
-                </span>
-                <span>SSIM: 0.982</span>
-              </div>
-
-              <div className="absolute bottom-3 left-3 right-3 flex justify-between text-[10px] font-code-snippet text-white/80">
-                <span>Surrogates: OpenCLIP + ResNet50</span>
-                <span className="text-secondary">Epsilon Clamped (8/255)</span>
-              </div>
-            </div>
-
-            {/* Code Snippet Box */}
-            <div className="bg-black/70 p-3 rounded border border-white/[0.08] font-code-snippet text-[11px] text-on-surface-variant space-y-1">
-              <p className="text-white/60"># Dual-surrogate PGD perturbation step</p>
-              <p className="text-neon-cyan">loss = w_clip * loss_clip + w_resnet * loss_resnet</p>
-              <p className="text-white/80">delta.data.clamp_(-EPSILON, EPSILON)</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Threat Landscape Section */}
-      <section id="threats" className="max-w-7xl mx-auto px-6 md:px-12 py-20 w-full border-b border-white/[0.08]">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-semibold text-neon-cyan uppercase tracking-widest font-code-snippet mb-2 block">
-            Security Vectors
-          </span>
-          <h2 className="text-3xl md:text-4xl text-white font-extrabold tracking-tight">
-            Why Standard Photos Are Vulnerable
-          </h2>
-          <p className="text-sm text-on-surface-variant mt-3 leading-relaxed">
-            Every clean facial image uploaded to public platforms serves as training data for modern AI cloning pipelines.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1 */}
-          <div className="glass-panel p-7 rounded-xl border border-white/[0.08] bg-surface-container-high/40 hover:border-white/20 transition-all flex flex-col justify-between group">
-            <div>
-              <div className="w-10 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-5 group-hover:scale-105 transition-transform">
-                <span className="material-symbols-outlined text-[20px]">gavel</span>
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">Deepfake Synthesis & Face-Swapping</h3>
-              <p className="text-xs text-on-surface-variant/80 leading-relaxed">
-                Adversaries scrape public photos to generate synthetic video footage, compromising personal identity and reputation.
-              </p>
-            </div>
-            <div className="mt-6 pt-4 border-t border-white/[0.06] text-[11px] font-code-snippet text-red-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-              High Identity Risk
-            </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="glass-panel p-7 rounded-xl border border-white/[0.08] bg-surface-container-high/40 hover:border-white/20 transition-all flex flex-col justify-between group">
-            <div>
-              <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-5 group-hover:scale-105 transition-transform">
-                <span className="material-symbols-outlined text-[20px]">no_accounts</span>
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">Unauthorized Model Fine-Tuning</h3>
-              <p className="text-xs text-on-surface-variant/80 leading-relaxed">
-                Generative AI LoRA models can be trained on as few as 5 public photos to replicate your likeness infinitely.
-              </p>
-            </div>
-            <div className="mt-6 pt-4 border-t border-white/[0.06] text-[11px] font-code-snippet text-amber-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              Biometric Scraping
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="glass-panel p-7 rounded-xl border border-white/[0.08] bg-surface-container-high/40 hover:border-white/20 transition-all flex flex-col justify-between group">
-            <div>
-              <div className="w-10 h-10 rounded-lg bg-neon-cyan/10 border border-neon-cyan/20 flex items-center justify-center text-neon-cyan mb-5 group-hover:scale-105 transition-transform">
-                <span className="material-symbols-outlined text-[20px]">lock_reset</span>
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">Varman Zero-Knowledge Defense</h3>
-              <p className="text-xs text-on-surface-variant/80 leading-relaxed">
-                Disrupts feature extraction at the mathematical level, protecting images with client-side AES-256 encryption.
-              </p>
-            </div>
-            <div className="mt-6 pt-4 border-t border-white/[0.06] text-[11px] font-code-snippet text-neon-cyan flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan"></span>
-              Mathematical Boundary Shield
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Architecture CTA Footer */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 py-16 w-full text-center">
-        <div className="glass-panel p-10 rounded-2xl border border-white/10 bg-surface-container-high/50 max-w-4xl mx-auto flex flex-col items-center">
-          <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-3">
-            Ready to Protect Your Digital Footprint?
-          </h3>
-          <p className="text-sm text-on-surface-variant max-w-md mb-6 leading-relaxed">
-            Create your account and deploy adversarial noise protection to your photos in seconds.
-          </p>
-          <button
-            onClick={handleCTA}
-            className="bg-neon-cyan text-black font-semibold px-8 py-3.5 rounded-lg hover:bg-neon-cyan/90 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] transition-all text-xs tracking-wider font-code-snippet uppercase border border-neon-cyan"
-          >
-            Access Varman Console
-          </button>
-        </div>
-      </section>
+      </footer>
     </div>
   );
 };
