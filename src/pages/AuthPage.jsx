@@ -1,7 +1,8 @@
 import { useState, useContext } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Shield, Lock, Mail, User as UserIcon, LogIn, UserPlus, Check } from 'lucide-react';
+import WebThreads from '../components/WebThreads/WebThreads';
+import { Shield, Lock, Mail, User as UserIcon, LogIn, UserPlus } from 'lucide-react';
 
 const AuthPage = () => {
   const { user, login, register } = useContext(AuthContext);
@@ -37,7 +38,7 @@ const AuthPage = () => {
       }
     } catch (err) {
       if (mode === 'login') {
-        setError('Authentication failed: Incorrect email or password.');
+        setError('Authentication failed: Incorrect email or password. Click "Create an account" if registering a new identity.');
       } else {
         setError(err.response?.data?.detail || 'Registration failed. Please try again.');
       }
@@ -48,24 +49,25 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center font-sans overflow-hidden relative w-full selection:bg-emerald-100 selection:text-emerald-900">
-      {/* ── MaterialM Mesh Gradient Animated Background ─────────────────── */}
-      <div 
-        className="absolute inset-0 z-0 opacity-90"
-        style={{
-          background: 'linear-gradient(-45deg, rgba(5, 150, 105, 0.12), rgba(241, 245, 249, 0.9), rgba(16, 185, 129, 0.15), rgba(15, 23, 42, 0.08))',
-          backgroundSize: '400% 400%',
-          animation: 'materialmGradient 12s ease infinite',
-        }}
-      ></div>
-
-      {/* Inject MaterialM Keyframes */}
-      <style>{`
-        @keyframes materialmGradient {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `}</style>
+      {/* ── React Bits WebThreads (Waves / Lines Background) ─────────────── */}
+      <div className="absolute inset-0 z-0 opacity-80 pointer-events-auto">
+        <WebThreads
+          color1="#059669"
+          color2="#10b981"
+          color3="#0f172a"
+          speed={0.25}
+          threadCount={7}
+          frequency={4.5}
+          spread={0.22}
+          glow={0.03}
+          falloff={0.65}
+          thickness={1.2}
+          brightness={0.7}
+          opacity={0.85}
+          mouseInteraction={true}
+          mouseStrength={0.4}
+        />
+      </div>
 
       {/* Grid Overlay */}
       <div
@@ -79,7 +81,7 @@ const AuthPage = () => {
 
       {/* ── MaterialM Auth Card ─────────────────────────────────────────── */}
       <main className="w-full max-w-md px-6 z-10 relative py-12">
-        <div className="bg-white rounded-2xl p-8 sm:p-10 border border-slate-200/90 shadow-xl shadow-slate-900/5 flex flex-col items-center">
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl p-8 sm:p-10 border border-slate-200/90 shadow-xl shadow-slate-900/10 flex flex-col items-center">
           {/* Brand Logo & Header */}
           <Link to="/" className="flex items-center gap-2 mb-3 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-sm">
@@ -89,11 +91,11 @@ const AuthPage = () => {
           </Link>
 
           <p className="text-xs text-slate-500 mb-6 text-center font-medium">
-            {mode === 'login' ? 'Sign In to Varman Protection Console' : 'Create an account to protect your photos'}
+            {mode === 'login' ? 'Sign In to Varman Protection Console' : 'Create a fresh account to protect your photos'}
           </p>
 
           {error && (
-            <div className="w-full p-3.5 mb-5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold text-center">
+            <div className="w-full p-3.5 mb-5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold text-center leading-relaxed">
               {error}
             </div>
           )}
@@ -110,7 +112,7 @@ const AuthPage = () => {
                     type="text"
                     id="displayName"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-3.5 pr-10 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-                    placeholder="John Doe"
+                    placeholder="Operator Alias"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     maxLength={100}
@@ -181,7 +183,7 @@ const AuthPage = () => {
               {mode === 'login' ? <LogIn className="w-4 h-4 text-emerald-400" /> : <UserPlus className="w-4 h-4 text-emerald-400" />}
               {mode === 'login'
                 ? (loading ? 'Signing in...' : 'Sign In')
-                : (loading ? 'Creating Account...' : 'Sign Up')
+                : (loading ? 'Creating Account...' : 'Create Account & Sign In')
               }
             </button>
           </form>
