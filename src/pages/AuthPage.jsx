@@ -1,7 +1,8 @@
 import { useState, useContext } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import LiquidEther from '../components/LiquidEther';
+import WebThreads from '../components/WebThreads/WebThreads';
+import { Shield, Key, Mail, User as UserIcon, LogIn, UserPlus } from 'lucide-react';
 
 const AuthPage = () => {
   const { user, login, register } = useContext(AuthContext);
@@ -19,11 +20,10 @@ const AuthPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
-    // Technical identification format check (RFC 5322 Standard Regex)
+
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
-      setError('Invalid technical identifier format (valid email address required).');
+      setError('Please enter a valid email address.');
       return;
     }
 
@@ -37,7 +37,7 @@ const AuthPage = () => {
       }
     } catch (err) {
       if (mode === 'login') {
-        setError('Authentication failed: Email or password incorrect.');
+        setError('Authentication failed: Incorrect email or password.');
       } else {
         setError(err.response?.data?.detail || 'Registration failed. Please try again.');
       }
@@ -47,80 +47,84 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="bg-[#09090b] text-on-surface min-h-screen flex items-center justify-center font-body overflow-hidden relative w-full">
-      {/* Dynamic Ambient Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-25">
-        <LiquidEther
-          colors={[ '#00f0ff', '#1e293b', '#7c3aed', '#0284c7' ]}
-          mouseForce={35}
-          cursorSize={110}
-          isViscous={false}
-          viscous={25}
-          iterationsViscous={15}
-          iterationsPoisson={20}
-          resolution={0.3}
-          isBounce
-          autoDemo={true}
-          autoSpeed={0.5}
-          autoIntensity={2.0}
-          takeoverDuration={0.25}
-          autoResumeDelay={3000}
-          autoRampDuration={0.6}
-          BFECC={true}
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center font-sans overflow-hidden relative w-full selection:bg-emerald-100 selection:text-emerald-900">
+      {/* ── React Bits WebThreads Background Canvas ────────────────────────── */}
+      <div className="absolute inset-0 z-0 opacity-80 pointer-events-auto">
+        <WebThreads
+          color1="#059669"
+          color2="#10b981"
+          color3="#0f172a"
+          speed={0.25}
+          threadCount={7}
+          frequency={4.5}
+          spread={0.22}
+          glow={0.03}
+          falloff={0.65}
+          thickness={1.2}
+          brightness={0.7}
+          opacity={0.85}
+          mouseInteraction={true}
+          mouseStrength={0.4}
         />
       </div>
 
-      {/* Hairline Grid Overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-4" style={{
-        backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px)',
-        backgroundSize: '40px 40px'
-      }}></div>
+      {/* Subtle Hairline Grid Overlay */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none opacity-5"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgba(15, 23, 42, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(15, 23, 42, 0.1) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }}
+      ></div>
 
-      <main className="w-full max-w-md px-6 z-10 relative">
-        <div className="glass-panel rounded-2xl p-8 sm:p-10 flex flex-col items-center border border-white/10 bg-surface-container-high/70 backdrop-blur-2xl shadow-2xl">
+      {/* Main Form Container Card */}
+      <main className="w-full max-w-md px-6 z-10 relative py-12">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 sm:p-10 flex flex-col items-center border border-slate-200/80 shadow-2xl shadow-slate-900/10">
           {/* Logo Badge */}
-          <div className="w-14 h-14 rounded-xl bg-white/[0.04] border border-white/15 flex items-center justify-center mb-5 shadow-[0_0_20px_rgba(0,240,255,0.1)] relative">
-            <div className="absolute inset-0 rounded-xl border border-neon-cyan/30 animate-pulse opacity-40"></div>
-            <span className="material-symbols-outlined text-neon-cyan text-2xl">shield</span>
-          </div>
+          <Link to="/" className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mb-5 shadow-sm hover:scale-105 transition-transform">
+            <Shield className="w-7 h-7 text-emerald-600" />
+          </Link>
 
-          <h1 className="text-2xl font-extrabold text-white tracking-tight uppercase mb-1 text-center">VARMAN</h1>
-          <p className="font-code-snippet text-xs text-on-surface-variant/80 mb-6 text-center uppercase tracking-wider">
-            {mode === 'login' ? 'Secure Authentication Protocol' : 'Identity Registration Protocol'}
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight text-center">
+            {mode === 'login' ? 'Welcome Back to Varman' : 'Create Varman Account'}
+          </h1>
+          <p className="text-xs text-slate-500 mb-6 text-center font-medium mt-1">
+            {mode === 'login' ? 'Sign in to access your protected image vault' : 'Register to start protecting your photos'}
           </p>
 
           {error && (
-            <div className="w-full p-3.5 mb-5 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-xs font-code-snippet text-center leading-normal">
+            <div className="w-full p-3.5 mb-5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium text-center">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="w-full space-y-4">
             <div className="space-y-1.5">
-              <label className="font-code-snippet text-[11px] text-on-surface-variant/90 flex items-center gap-1.5 font-medium tracking-wider uppercase" htmlFor="email">
-                <span className="material-symbols-outlined text-[13px] text-neon-cyan">alternate_email</span> Email Identifier
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5" htmlFor="email">
+                <Mail className="w-3.5 h-3.5 text-emerald-600" /> Email Address
               </label>
-              <input 
-                type="email" 
-                id="email" 
-                className="w-full bg-black/50 border border-white/10 rounded-lg py-2.5 px-3.5 text-white font-code-snippet text-xs focus:outline-none transition-all placeholder:text-white/20 focus:border-neon-cyan/80 focus:ring-1 focus:ring-neon-cyan/40" 
-                placeholder="operator@varman.sys" 
+              <input
+                type="email"
+                id="email"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required 
+                required
               />
             </div>
 
             {mode === 'register' && (
               <div className="space-y-1.5">
-                <label className="font-code-snippet text-[11px] text-on-surface-variant/90 flex items-center gap-1.5 font-medium tracking-wider uppercase" htmlFor="displayName">
-                  <span className="material-symbols-outlined text-[13px] text-neon-cyan">badge</span> Operator Alias (Username)
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5" htmlFor="displayName">
+                  <UserIcon className="w-3.5 h-3.5 text-emerald-600" /> Display Name / Username
                 </label>
-                <input 
-                  type="text" 
-                  id="displayName" 
-                  className="w-full bg-black/50 border border-white/10 rounded-lg py-2.5 px-3.5 text-white font-code-snippet text-xs focus:outline-none transition-all placeholder:text-white/20 focus:border-neon-cyan/80 focus:ring-1 focus:ring-neon-cyan/40" 
-                  placeholder="kagenou" 
+                <input
+                  type="text"
+                  id="displayName"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                  placeholder="Operator Name"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   maxLength={100}
@@ -129,37 +133,37 @@ const AuthPage = () => {
             )}
 
             <div className="space-y-1.5">
-              <label className="font-code-snippet text-[11px] text-on-surface-variant/90 flex items-center gap-1.5 font-medium tracking-wider uppercase" htmlFor="password">
-                <span className="material-symbols-outlined text-[13px] text-neon-cyan">key</span> Access Password
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5" htmlFor="password">
+                <Key className="w-3.5 h-3.5 text-emerald-600" /> Password
               </label>
-              <input 
-                type="password" 
-                id="password" 
-                className="w-full bg-black/50 border border-white/10 rounded-lg py-2.5 px-3.5 text-white font-code-snippet text-xs focus:outline-none transition-all placeholder:text-white/20 focus:border-neon-cyan/80 focus:ring-1 focus:ring-neon-cyan/40" 
-                placeholder="••••••••••••" 
+              <input
+                type="password"
+                id="password"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3.5 text-slate-900 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required 
+                required
               />
             </div>
 
-            <button 
-              className="w-full bg-neon-cyan text-black font-semibold py-3.5 rounded-lg hover:bg-neon-cyan/90 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-5 text-xs tracking-wider font-code-snippet uppercase border border-neon-cyan" 
+            <button
+              className="w-full bg-slate-900 text-white font-semibold py-3.5 rounded-xl hover:bg-slate-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 mt-5 text-xs shadow-md"
               type="submit"
               disabled={loading}
             >
-              <span className="material-symbols-outlined text-[16px]">{mode === 'login' ? 'login' : 'person_add'}</span>
-              {mode === 'login' 
-                ? (loading ? 'AUTHENTICATING...' : 'ESTABLISH SESSION') 
-                : (loading ? 'REGISTERING...' : 'REGISTER & LOGIN')
+              {mode === 'login' ? <LogIn className="w-4 h-4 text-emerald-400" /> : <UserPlus className="w-4 h-4 text-emerald-400" />}
+              {mode === 'login'
+                ? (loading ? 'Authenticating...' : 'Sign In to Dashboard')
+                : (loading ? 'Registering...' : 'Create Account & Sign In')
               }
             </button>
           </form>
 
           {mode === 'login' && (
-            <div className="mt-5 text-center">
-              <p className="text-on-surface-variant/60 text-[11px] font-code-snippet uppercase tracking-wider mb-1.5">
-                No access credentials?
+            <div className="mt-6 text-center">
+              <p className="text-slate-500 text-xs font-medium mb-1">
+                Don't have an account yet?
               </p>
               <button
                 type="button"
@@ -167,31 +171,31 @@ const AuthPage = () => {
                   setMode('register');
                   setError('');
                 }}
-                className="text-neon-cyan hover:text-white transition-colors text-xs font-code-snippet uppercase tracking-wider underline decoration-neon-cyan/40 hover:decoration-white"
+                className="text-emerald-600 hover:text-emerald-700 transition-colors text-xs font-bold underline underline-offset-4"
               >
-                Register to Varman
+                Register a new account
               </button>
             </div>
           )}
 
           {mode === 'register' && (
-            <div className="mt-5 text-center">
+            <div className="mt-6 text-center">
               <button
                 type="button"
                 onClick={() => {
                   setMode('login');
                   setError('');
                 }}
-                className="text-on-surface-variant/80 hover:text-white transition-colors text-xs font-code-snippet uppercase tracking-wider underline"
+                className="text-slate-600 hover:text-slate-900 transition-colors text-xs font-semibold underline underline-offset-4"
               >
-                Back to Login
+                Back to Sign In
               </button>
             </div>
           )}
 
-          <div className="mt-6 flex items-center gap-2 font-code-snippet text-[10px] text-on-surface-variant/50 uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_6px_#00f0ff]"></span>
-            Encryption Core Online
+          <div className="mt-8 flex items-center gap-2 text-[11px] font-semibold text-slate-500">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            AES-256 Client-Side Key Derivation Active
           </div>
         </div>
       </main>
