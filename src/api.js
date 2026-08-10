@@ -14,13 +14,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor to handle 401 Unauthorized
+// Interceptor to handle 401 Unauthorized: clear stale token without breaking public pages
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('varman_token');
-      window.location.href = '/login';
+      // Note: Do NOT force window.location.href = '/login' here,
+      // as it breaks public routes like the Landing Page ('/').
+      // ProtectedRoute handles redirecting to '/login' for protected routes.
     }
     return Promise.reject(error);
   }

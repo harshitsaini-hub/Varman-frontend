@@ -15,7 +15,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
-  if (loading) return <div className="app-container items-center justify-center text-neon-cyan font-code-snippet">Verifying Authentication...</div>;
+  if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-700 font-mono text-xs">Verifying Authentication...</div>;
   if (!user) return <Navigate to="/login" replace />;
   return (
     <>
@@ -34,7 +34,7 @@ const AppRoutes = () => {
   const { user, loading } = useContext(AuthContext);
 
   if (loading) {
-    return <div className="app-container items-center justify-center text-neon-cyan font-code-snippet">Initializing System...</div>;
+    return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-700 font-mono text-xs">Initializing Varman...</div>;
   }
 
   return (
