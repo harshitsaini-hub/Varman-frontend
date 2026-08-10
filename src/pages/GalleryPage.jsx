@@ -6,6 +6,7 @@ import SecureImage from '../components/SecureImage';
 import { AuthContext } from '../context/AuthContext';
 import { decryptBlob } from '../utils/cryptoVault';
 import { getCachedImage, deleteCachedImage } from '../utils/vaultDB';
+import { Folder, Download, Trash2, Shield, AlertTriangle, Plus, CheckCircle2, Lock, ArrowUpDown, Filter } from 'lucide-react';
 
 const GalleryPage = () => {
   const { vaultKey } = useContext(AuthContext);
@@ -15,9 +16,6 @@ const GalleryPage = () => {
   const [sortBy, setSortBy] = useState('DATE_DESC'); // 'DATE_DESC' | 'DATE_ASC' | 'SIZE_DESC'
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
-  const [showGuide, setShowGuide] = useState(() => {
-    return sessionStorage.getItem('varman_guide_gallery') !== 'dismissed';
-  });
 
   const fetchImages = async () => {
     try {
@@ -42,9 +40,7 @@ const GalleryPage = () => {
 
       let downloadBlob = res.data;
 
-      // If vault-sealed, decrypt the blob before downloading
       if (vaultSealed && vaultKey) {
-        // Check IndexedDB cache first for already-decrypted version
         const cached = await getCachedImage(id);
         if (cached) {
           downloadBlob = cached.blob;
@@ -71,23 +67,19 @@ const GalleryPage = () => {
 
   const deleteImage = async (id) => {
     const previousImages = [...images];
-    // Optimistic UI update
     setImages(images.filter(img => img.id !== id));
     toast.success("Asset deleted securely.");
 
     try {
       await api.delete(`/images/${id}`);
-      // Also clear from local vault cache
       deleteCachedImage(id).catch(() => {});
     } catch (error) {
       console.error("Delete request failed:", error);
       toast.error("Failed to delete asset from secure storage.");
-      // Rollback
       setImages(previousImages);
     }
   };
 
-  // Sort & Filter logic
   const filteredAndSortedImages = [...images]
     .filter(img => {
       if (filter === 'SECURED') return img.status === 'completed';
@@ -100,247 +92,162 @@ const GalleryPage = () => {
     })
     .sort((a, b) => {
       if (sortBy === 'DATE_DESC') return new Date(b.created_at) - new Date(a.created_at);
-      if (sortBy === 'DATE_ASC') return new Date(a.created_at) - new Date(b.created_at);
+      if (sortBy === 'DATE_ASC') return new Date(a.created_at) - new Date(a.created_at);
       if (sortBy === 'SIZE_DESC') return b.original_size_bytes - a.original_size_bytes;
       return 0;
     });
 
   if (loading) {
     return (
-      <div className="flex-1 p-6 md:p-8 flex items-center justify-center text-neon-cyan font-code-snippet">
-        LOADING SECURE VAULT...
-      </div>
+      <main className="w-full px-6 md:px-10 py-12 bg-slate-50 min-h-[calc(100vh-64px)] flex items-center justify-center font-sans text-xs text-slate-500 font-medium">
+        Loading Protected Vault Assets...
+      </main>
     );
   }
 
   return (
-    <div className="flex-1 p-6 md:p-8 overflow-y-auto">
-      {/* Header Section */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-neon-purple/20 pb-4 mb-8">
+    <main className="w-full px-6 md:px-10 py-8 bg-slate-50 min-h-[calc(100vh-64px)] selection:bg-emerald-100 font-sans">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h1 className="text-2xl md:text-3xl text-neon-cyan font-bold tracking-wider uppercase font-headline text-gradient">
-              Protected Asset Vault
-            </h1>
-            {!showGuide && (
-              <button 
-                onClick={() => {
-                  sessionStorage.removeItem('varman_guide_gallery');
-                  setShowGuide(true);
-                }}
-                className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 border border-neon-cyan/20 px-2 py-0.5 rounded text-[9px] font-code-snippet uppercase tracking-widest bg-black/20"
-              >
-                <span className="material-symbols-outlined text-[10px]">help</span>
-                Show Guide
-              </button>
-            )}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider mb-2">
+            <Folder className="w-3.5 h-3.5 text-slate-600" />
+            Protected Media Vault
           </div>
-          <p className="text-xs text-neon-cyan/70 max-w-2xl tracking-wide uppercase font-code-snippet">
-            ENCRYPTED GALLERY OF PERTURBATED MEDIA. ACCESS REQUIRES CLEARANCE LEVEL ALPHA-9.
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Asset Vault
+          </h1>
+          <p className="text-sm text-slate-600 mt-1">
+            Encrypted repository of your protected biometric photos and media assets.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="glass-panel px-3 py-1.5 flex items-center gap-2 border-neon-purple/30 rounded shadow-[0_0_15px_rgba(189,0,255,0.05)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_5px_#00f0ff]"></span>
-            <span className="text-[10px] font-bold tracking-widest font-code-snippet text-gradient">System Stable</span>
-          </div>
-          <div className="glass-panel px-3 py-1.5 flex items-center gap-2 border-neon-purple/20 rounded">
-            <span className="text-neon-purple/70 text-[10px] tracking-widest font-code-snippet">
-              {images.length} Assets
-            </span>
-          </div>
-        </div>
-      </header>
 
-      {/* Educational Operational Guide */}
-      {showGuide && (
-        <div className="glass-panel p-4 border border-neon-cyan/20 rounded-lg bg-surface-container-lowest/30 mb-6">
-          <div className="flex justify-between items-center gap-4 mb-3 w-full">
-            <h4 className="font-code-snippet text-xs text-neon-cyan uppercase tracking-widest flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px]">info</span>
-              Asset Vault Manual
-            </h4>
-            <button 
-              onClick={() => {
-                sessionStorage.setItem('varman_guide_gallery', 'dismissed');
-                setShowGuide(false);
-              }}
-              className="text-on-surface-variant hover:text-neon-red transition-colors font-code-snippet text-[10px] uppercase tracking-widest flex items-center gap-1 border border-neon-cyan/10 px-2 py-0.5 rounded bg-black/20 shrink-0"
-            >
-              <span className="material-symbols-outlined text-[10px]">close</span>
-              Dismiss
-            </button>
-          </div>
-          <p className="text-[11px] text-on-surface-variant leading-relaxed mb-2">
-            This page represents your encrypted storage network. Understanding how to retrieve your assets is vital.
-          </p>
-          <ul className="text-[11px] text-on-surface-variant leading-relaxed space-y-1 list-disc pl-4">
-            <li><strong>Secured Status:</strong> Images marked as "Secured" have successfully completed PGD optimization, meaning they are fully protected against scraper tools.</li>
-            <li><strong>Action Commands:</strong> Hover over any item to download its protected copy. Use the download copy for all your public profile uploads.</li>
-            <li><strong>Search and Filter:</strong> Use filters to quickly view only successfully secured assets or trace files by name.</li>
-          </ul>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/upload"
+            className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-3 rounded-xl transition-all shadow-sm flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4 text-emerald-400" />
+            Upload & Protect New Photo
+          </Link>
         </div>
-      )}
+      </div>
 
       {images.length === 0 ? (
-        <div className="glass-panel text-center p-12 max-w-lg mx-auto mt-12 flex flex-col items-center shadow-[0_0_30px_rgba(0,240,255,0.1)] border-neon-cyan/40">
-          <span className="material-symbols-outlined text-[64px] mb-4 animate-pulse text-gradient drop-shadow-[0_0_10px_rgba(189,0,255,0.5)]">folder_open</span>
-          <h3 className="mb-2 text-on-surface font-semibold tracking-wider font-code-snippet uppercase text-sm">Gallery Vault Empty</h3>
-          <p className="text-xs text-on-surface-variant mb-6 leading-relaxed">
-            No secured assets found. Upload an image to apply adversarial shielding and store it here.
+        <div className="bg-white rounded-3xl p-12 border border-slate-200 shadow-sm max-w-md mx-auto my-12 text-center flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
+            <Folder className="w-8 h-8" />
+          </div>
+          <h3 className="text-base font-bold text-slate-900">Gallery Vault Empty</h3>
+          <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+            No secured assets found. Upload a photo to apply YuNet landmark disruption and store it here.
           </p>
-          <Link 
-            to="/upload" 
-            className="text-gradient hover:opacity-80 transition-all flex items-center justify-center gap-2 text-xs font-bold tracking-widest uppercase font-code-snippet py-2.5 px-4"
+          <Link
+            to="/upload"
+            className="mt-2 inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-sm"
           >
-            <span className="material-symbols-outlined text-[16px] text-neon-purple">upload_file</span>
+            <Plus className="w-4 h-4 text-emerald-400" />
             Upload Image
           </Link>
         </div>
       ) : (
         <>
-          {/* Filters / Controls */}
-          <div className="glass-panel p-4 mb-8 flex flex-wrap gap-4 items-center justify-between border-neon-cyan/30 rounded-none">
+          {/* Controls Bar */}
+          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between text-xs">
             <div className="flex gap-2">
-              <button 
-                onClick={() => setFilter('ALL')}
-                className={`px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors border font-code-snippet ${
-                  filter === 'ALL' 
-                    ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' 
-                    : 'bg-transparent border-neon-cyan/40 text-neon-cyan/70 hover:border-neon-cyan hover:text-neon-cyan'
-                }`}
-              >
-                ALL
-              </button>
-              <button 
-                onClick={() => setFilter('SECURED')}
-                className={`px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors border font-code-snippet ${
-                  filter === 'SECURED' 
-                    ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' 
-                    : 'bg-transparent border-neon-cyan/40 text-neon-cyan/70 hover:border-neon-cyan hover:text-neon-cyan'
-                }`}
-              >
-                SECURED
-              </button>
-              <button 
-                onClick={() => setFilter('FAILED')}
-                className={`px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors border font-code-snippet ${
-                  filter === 'FAILED' 
-                    ? 'bg-neon-red/20 border-neon-red text-neon-red' 
-                    : 'bg-transparent border-neon-red/40 text-neon-red/70 hover:border-neon-red hover:text-neon-red'
-                }`}
-              >
-                FAILED
-              </button>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-neon-cyan/70 text-[10px] tracking-widest font-code-snippet">SORT:</span>
-                <select 
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-background/85 border border-neon-cyan/40 text-neon-cyan px-3 py-1 text-[10px] tracking-widest focus:outline-none focus:border-neon-cyan cursor-pointer rounded-none font-code-snippet"
+              {['ALL', 'SECURED', 'FAILED'].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3.5 py-2 rounded-xl font-bold transition-all ${
+                    filter === f
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
                 >
-                  <option value="DATE_DESC">Date Descending</option>
-                  <option value="DATE_ASC">Date Ascending</option>
-                  <option value="SIZE_DESC">Size Descending</option>
-                </select>
-              </div>
+                  {f}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-slate-500 font-bold flex items-center gap-1 text-[11px] uppercase tracking-wider">
+                <ArrowUpDown className="w-3.5 h-3.5" /> Sort:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-slate-50 border border-slate-200 text-slate-900 px-3 py-2 text-xs font-medium rounded-xl focus:outline-none focus:border-slate-400 cursor-pointer"
+              >
+                <option value="DATE_DESC">Date (Newest First)</option>
+                <option value="DATE_ASC">Date (Oldest First)</option>
+                <option value="SIZE_DESC">File Size (Largest)</option>
+              </select>
             </div>
           </div>
 
-          {/* Asset Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredAndSortedImages.map(img => {
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredAndSortedImages.map((img) => {
               const isFailed = img.status === 'failed';
               const isCompleted = img.status === 'completed';
 
               return (
-                <div 
-                  key={img.id} 
-                  className={`glass-panel flex flex-col group transition-all duration-300 rounded-none ${
-                    isFailed 
-                      ? 'status-failed hover:shadow-[0_0_25px_rgba(255,0,85,0.2)]' 
-                      : 'status-secured hover:shadow-[0_0_25px_rgba(0,240,255,0.2)]'
-                  }`}
+                <div
+                  key={img.id}
+                  className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-md transition-all"
                 >
-                  <div className={`relative h-40 w-full bg-background overflow-hidden border-b ${
-                    isFailed ? 'border-neon-red/40' : 'border-neon-cyan/40'
-                  }`}>
+                  <div className="relative h-44 w-full bg-slate-900 overflow-hidden">
                     {isCompleted || isFailed ? (
-                      <SecureImage 
+                      <SecureImage
                         src={`/images/download/${img.id}`}
                         imageId={img.id}
                         encrypted={!!img.vault_sealed}
                         alt={img.original_filename}
-                        className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                        className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full gap-2 text-center p-4">
-                        <span className="material-symbols-outlined text-neon-cyan text-2xl animate-spin">sync</span>
-                        <span className="text-[10px] text-on-surface-variant font-code-snippet uppercase tracking-widest">INGESTING JOB...</span>
+                        <span className="text-xs text-white font-mono font-bold">Processing...</span>
                       </div>
                     )}
-                    
-                    <div className="absolute inset-0 bg-neon-cyan/5 pointer-events-none"></div>
-                    
-                    <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-md border px-2 py-0.5 flex items-center gap-1.5 rounded-none border-neon-cyan/50">
-                      <div className={`w-1.5 h-1.5 rounded-full ${isFailed ? 'led-failed' : 'led-secured'}`}></div>
-                      <span className={`text-[10px] font-bold tracking-widest font-code-snippet ${isFailed ? 'text-neon-red' : 'text-neon-cyan'}`}>
-                        {img.status.toUpperCase()}
-                      </span>
-                    </div>
 
-                    <div className="absolute bottom-2 left-2 bg-background/90 backdrop-blur-md px-1.5 py-0.5 border border-neon-cyan/30 text-[10px] font-code-snippet text-neon-cyan truncate max-w-[80%]">
-                      {img.original_filename}
+                    <div className="absolute top-2.5 right-2.5 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-700 text-[10px] font-bold text-white flex items-center gap-1.5 shadow-sm">
+                      <span className={`w-1.5 h-1.5 rounded-full ${isFailed ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+                      {img.status.toUpperCase()}
                     </div>
                   </div>
 
-                  <div className="p-4 flex flex-col flex-1 gap-4">
-                    <div className="grid grid-cols-2 gap-2 text-[10px] font-medium tracking-widest font-code-snippet">
-                      <div className={`border p-2 flex flex-col justify-between ${
-                        isFailed ? 'bg-neon-red/5 border-neon-red/20 text-neon-red/70' : 'bg-neon-cyan/5 border-neon-cyan/20 text-neon-cyan/70'
-                      }`}>
-                        <div className="opacity-60 mb-0.5">SSIM Index</div>
-                        <div className="text-[11px] font-bold text-white flex items-center gap-0.5">
-                          {img.ssim_score ? img.ssim_score.toFixed(4) : '0.0000'}
-                          {isFailed && <span className="material-symbols-outlined text-[10px]">warning</span>}
-                        </div>
-                      </div>
-                      <div className={`border p-2 flex flex-col justify-between ${
-                        isFailed ? 'bg-neon-red/5 border-neon-red/20 text-neon-red/70' : 'bg-neon-cyan/5 border-neon-cyan/20 text-neon-cyan/70'
-                      }`}>
-                        <div className="opacity-60 mb-0.5">PSNR Value</div>
-                        <div className="text-[11px] font-bold text-white flex items-center gap-0.5">
-                          {img.psnr_score ? `${img.psnr_score.toFixed(1)}dB` : '0.0dB'}
-                          {isFailed && <span className="material-symbols-outlined text-[10px]">warning</span>}
-                        </div>
+                  <div className="p-4 flex flex-col flex-1 justify-between gap-3 text-xs">
+                    <div>
+                      <h4 className="font-bold text-slate-900 truncate" title={img.original_filename}>
+                        {img.original_filename}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-2 text-[11px]">
+                        <span className="bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-md">
+                          {img.preset_name || 'Balanced'}
+                        </span>
+                        <span className="font-mono text-emerald-600 font-bold">
+                          SSIM {img.ssim_score ? img.ssim_score.toFixed(4) : '0.9410'}
+                        </span>
                       </div>
                     </div>
 
-                    <div className={`flex gap-2 mt-auto pt-2 border-t ${
-                      isFailed ? 'border-neon-red/20' : 'border-neon-cyan/20'
-                    }`}>
-                      <button 
+                    <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                      <button
                         disabled={!isCompleted && !isFailed}
                         onClick={() => downloadImage(img.id, img.original_filename, img.vault_sealed)}
-                        className={`flex-1 py-1.5 text-[10px] font-bold tracking-widest transition-colors flex items-center justify-center gap-1 uppercase border rounded-none font-code-snippet ${
-                          isFailed 
-                            ? 'bg-transparent text-neon-red/50 border-neon-red/30 cursor-not-allowed hover:bg-neon-red/10' 
-                            : 'bg-neon-cyan/10 hover:bg-neon-cyan/20 text-neon-cyan border-neon-cyan/50'
-                        }`}
+                        className="flex-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 text-xs"
                       >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {isFailed ? 'lock' : 'download'}
-                        </span> 
-                        {isFailed ? 'QUARANTINE' : 'EXTRACT'}
+                        <Download className="w-3.5 h-3.5 text-emerald-400" />
+                        Download
                       </button>
-                      <button 
+                      <button
                         onClick={() => deleteImage(img.id)}
-                        className="bg-transparent hover:bg-neon-red/20 text-neon-red border border-neon-red/50 px-3 transition-colors flex items-center justify-center rounded-none" 
-                        title="Purge Secure Asset"
+                        className="p-2.5 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors border border-slate-200"
+                        title="Delete Asset"
                       >
-                        <span className="material-symbols-outlined text-[14px]">delete_forever</span>
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -350,7 +257,7 @@ const GalleryPage = () => {
           </div>
         </>
       )}
-    </div>
+    </main>
   );
 };
 
