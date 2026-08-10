@@ -17,10 +17,11 @@ const DashboardPage = () => {
       try {
         const [summaryRes, imagesRes] = await Promise.all([
           api.get('/analytics/summary'),
-          api.get('/images/'),
+          api.get('/images/list'),
         ]);
         setStats(summaryRes.data);
-        setRecentImages(imagesRes.data.slice(0, 5));
+        const list = imagesRes.data?.images || imagesRes.data || [];
+        setRecentImages(list.slice(0, 5));
       } catch (err) {
         console.error('Failed to fetch dashboard data', err);
       } finally {
