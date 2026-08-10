@@ -144,14 +144,7 @@ const UploadPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-emerald-100">
-      <Navbar />
-
-      <div className="app-container">
-        <Sidebar />
-
-        <div className="flex-1 md:pl-64 min-h-[calc(100vh-64px)] w-full relative">
-          <main className="max-w-7xl mx-auto px-6 md:px-12 py-10">
+    <main className="w-full px-6 md:px-10 py-8 bg-slate-50 min-h-[calc(100vh-64px)] selection:bg-emerald-100">
             {/* Header */}
             <div className="mb-10">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-3">
@@ -372,9 +365,6 @@ const UploadPage = () => {
               </div>
             </div>
           </main>
-        </div>
-      </div>
-    </div>
   );
 };
 
