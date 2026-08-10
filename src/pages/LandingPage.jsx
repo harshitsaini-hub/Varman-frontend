@@ -31,7 +31,7 @@ const LandingPage = () => {
               {/* Status Pill */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold w-fit tracking-wide">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-                <span>VARMAN 2.0 · PRACTICAL FACE DISRUPTION</span>
+                <span>VARMAN · PRACTICAL FACE DISRUPTION</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
@@ -61,12 +61,12 @@ const LandingPage = () => {
                   <ArrowRight className="w-4 h-4 text-slate-400" />
                 </button>
 
-                <a
-                  href="#architecture"
+                <Link
+                  to="/spec"
                   className="bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 font-semibold px-6 py-3.5 rounded-xl transition-all text-sm flex items-center gap-2"
                 >
                   View Engine Spec
-                </a>
+                </Link>
               </div>
 
               {/* Verified Technical Proof Chips */}
@@ -273,7 +273,7 @@ const LandingPage = () => {
       {/* Minimal Footer */}
       <footer className="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>VARMAN 2.0 · Practical Anti-Scraping Image Protection</div>
+          <div>VARMAN · Practical Anti-Scraping Image Protection</div>
           <div>CPU ONNX Engine · Open Source Architecture</div>
         </div>
       </footer>

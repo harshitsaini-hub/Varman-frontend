@@ -13,6 +13,8 @@ import AboutPage from './pages/AboutPage';
 import ForensicPage from './pages/ForensicPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
+import EngineSpecPage from './pages/EngineSpecPage';
+
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
   if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-700 font-mono text-xs">Verifying Authentication...</div>;
@@ -41,6 +43,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<AuthPage />} />
+      <Route path="/spec" element={<EngineSpecPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
       <Route path="/gallery" element={<ProtectedRoute><GalleryPage /></ProtectedRoute>} />

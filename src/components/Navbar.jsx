@@ -20,9 +20,6 @@ const Navbar = () => {
           <Link to="/" className="flex items-center gap-2 text-slate-900 font-extrabold text-xl tracking-tight hover:opacity-80 transition-opacity">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
             VARMAN
-            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600">
-              v2.0
-            </span>
           </Link>
           {user && (
             <div className="hidden md:flex gap-6 h-full items-center">
