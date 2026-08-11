@@ -85,7 +85,7 @@ const UploadPage = () => {
   const pollImageStatus = (imageId) => {
     pollInterval.current = setInterval(async () => {
       try {
-        const res = await api.get(`/images/${imageId}/status`);
+        const res = await api.get(`/images/status/${imageId}`);
         const data = res.data;
         setStatus(data.status);
 
@@ -96,7 +96,7 @@ const UploadPage = () => {
           setProcessingTimeMs(data.processing_time_ms);
 
           // Fetch protected image blob
-          const imgRes = await api.get(`/images/${imageId}/file`, { responseType: 'blob' });
+          const imgRes = await api.get(`/images/download/${imageId}`, { responseType: 'blob' });
           const objectUrl = URL.createObjectURL(imgRes.data);
           setProtectedUrl(objectUrl);
           toast.success("Image protection pipeline completed!");
@@ -248,13 +248,13 @@ const UploadPage = () => {
                   {/* Preset Spec Description */}
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1.5">
                     {presetName === 'Light' && (
-                      <p><strong>Light Preset:</strong> SSIM Target ≥ 0.95. Sub-pixel landmark warp (0.5% face width). Maximum visual fidelity for clean portraits.</p>
+                      <p><strong>Light (Quality Mode):</strong> SSIM Target ≥ 0.95. Sub-pixel landmark warp (0.5% face width). Maximum visual fidelity for clean portraits.</p>
                     )}
                     {presetName === 'Balanced' && (
-                      <p><strong>Balanced Preset:</strong> SSIM Target ≥ 0.92. Recommended balance between visual quality and facial alignment disruption.</p>
+                      <p><strong>Balanced Preset:</strong> SSIM Target ≥ 0.90. Inherits previous Aggressive baseline (1.5% face width warp). Optimal balance of visual quality & facial alignment disruption.</p>
                     )}
                     {presetName === 'Aggressive' && (
-                      <p><strong>Aggressive Preset:</strong> SSIM Target ≥ 0.90. Maximum landmark displacement & Y-channel frequency disruption for high-risk uploads.</p>
+                      <p><strong>Aggressive Preset:</strong> SSIM Target Range 0.85 ≤ SSIM ≤ 0.90. Higher perturbation intensity (2.5% face width warp & high DCT shift) for maximum scraper defense.</p>
                     )}
                   </div>
 
