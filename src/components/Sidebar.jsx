@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../utils/errorHandler';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api';
 import { Shield, LayoutDashboard, Folder, Power, ChevronDown, Trash2, UserX } from 'lucide-react';
@@ -26,7 +27,7 @@ const Sidebar = () => {
         }
       } catch (err) {
         console.error("Purge assets failed", err);
-        toast.error("Failed to purge vault assets.");
+        toast.error(getErrorMessage(err, "Failed to purge vault assets."));
       }
     }
   };
@@ -40,7 +41,7 @@ const Sidebar = () => {
         logout();
       } catch (err) {
         console.error("Account termination failed", err);
-        toast.error("Failed to terminate account.");
+        toast.error(getErrorMessage(err, "Failed to terminate account."));
       }
     }
   };

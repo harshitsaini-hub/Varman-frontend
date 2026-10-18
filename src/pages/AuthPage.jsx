@@ -3,6 +3,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../utils/errorHandler';
 import WebThreads from '../components/WebThreads/WebThreads';
 import {
   Shield,
@@ -94,12 +95,16 @@ const AuthPage = ({ initialMode = 'login' }) => {
       }
     } catch (err) {
       if (mode === 'login') {
-        setError('Authentication failed: Incorrect email or password. Click "Create an account" if registering a new identity.');
+        if (err.response?.status === 401) {
+          setError('Authentication failed: Incorrect email or password. Click "Create an account" if registering a new identity.');
+        } else {
+          setError(getErrorMessage(err, 'Authentication failed. Please check your credentials.'));
+        }
       } else {
         if (err.response?.status === 409) {
           setError('An account with this email already exists. Please log in.');
         } else {
-          setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+          setError(getErrorMessage(err, 'Registration failed. Please try again.'));
         }
       }
     } finally {
@@ -130,9 +135,9 @@ const AuthPage = ({ initialMode = 'login' }) => {
       if (err.response?.status === 404) {
         setError('No account found with this email.');
       } else if (err.response?.status === 429) {
-        setError(err.response?.data?.detail || 'Too many requests. Please wait a moment before trying again.');
+        setError(getErrorMessage(err, 'Too many requests. Please wait a moment before trying again.'));
       } else {
-        setError(err.response?.data?.detail || 'Failed to send verification code. Please try again.');
+        setError(getErrorMessage(err, 'Failed to send verification code. Please try again.'));
       }
     } finally {
       setLoading(false);
@@ -179,7 +184,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
       setSuccessBanner(msg);
       toast.success(msg);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to reset password. Please check your verification code.');
+      setError(getErrorMessage(err, 'Failed to reset password. Please check your verification code.'));
     } finally {
       setLoading(false);
     }

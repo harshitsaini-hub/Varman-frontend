@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useContext } from 'react';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../utils/errorHandler';
 import api from '../api';
 import ImageCompare from '../components/ImageCompare';
 import Navbar from '../components/Navbar';
@@ -103,7 +104,7 @@ const UploadPage = () => {
         } else if (data.status === 'failed') {
           clearInterval(pollInterval.current);
           setUploading(false);
-          toast.error(data.error_message || "Protection task failed.");
+          toast.error(getErrorMessage(data.error_message, "Protection task failed."));
         }
       } catch (err) {
         console.error("Polling error:", err);
@@ -139,7 +140,7 @@ const UploadPage = () => {
       setUploading(false);
       setStatus('failed');
       console.error("Protection upload failed:", err);
-      toast.error(err.response?.data?.detail || "Failed to submit image protection task.");
+      toast.error(getErrorMessage(err, "Failed to submit image protection task."));
     }
   };
 

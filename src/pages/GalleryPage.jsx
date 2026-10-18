@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../utils/errorHandler';
 import api from '../api';
 import SecureImage from '../components/SecureImage';
 import { AuthContext } from '../context/AuthContext';
@@ -49,7 +50,7 @@ const GalleryPage = () => {
       setImages(res.data.images || []);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load gallery assets.");
+      toast.error(getErrorMessage(error, "Failed to load gallery assets."));
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ const GalleryPage = () => {
       toast.success("Download started.", { id: downloadToast });
     } catch (error) {
       console.error(error);
-      toast.error("Failed to download image.", { id: downloadToast });
+      toast.error(getErrorMessage(error, "Failed to download image."), { id: downloadToast });
     }
   };
 
@@ -128,7 +129,7 @@ const GalleryPage = () => {
       deleteCachedImage(id).catch(() => {});
     } catch (error) {
       console.error("Delete request failed:", error);
-      toast.error("Failed to delete asset from storage.");
+      toast.error(getErrorMessage(error, "Failed to delete asset from storage."));
       setImages(previousImages);
     }
   };
@@ -148,7 +149,7 @@ const GalleryPage = () => {
       idsToDelete.forEach(id => deleteCachedImage(id).catch(() => {}));
     } catch (error) {
       console.error("Bulk delete failed:", error);
-      toast.error("Failed to delete some assets from storage.");
+      toast.error(getErrorMessage(error, "Failed to delete some assets from storage."));
       fetchImages();
     }
   };
