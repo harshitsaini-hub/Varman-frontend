@@ -82,13 +82,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (email, password, displayName) => {
-    await api.post('/auth/register', {
+    const res = await api.post('/auth/register', {
       email,
       password,
-      display_name: displayName
+      display_name: displayName,
     });
-    await login(email, password);
+
+    localStorage.setItem('varman_token', res.data.access_token);
+
+    // ── Vault Key Derivation ──────────────────────────────────────────
+    const vaultSalt = res.data.vault_salt;
+    if (vaultSalt) {
+      const key = await deriveVaultKey(password, vaultSalt);
+      setVaultKey(key);
+      await persistVaultKey(key);
+    }
+
+    await fetchUser();
   };
+
 
   const logout = () => {
     localStorage.removeItem('varman_token');
