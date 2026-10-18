@@ -1,8 +1,14 @@
 import axios from 'axios';
 
+let rawBaseUrl = import.meta.env.VITE_API_URL || '/api';
+rawBaseUrl = rawBaseUrl.replace(/\/+$/, '');
+if (!rawBaseUrl.endsWith('/api')) {
+  rawBaseUrl = `${rawBaseUrl}/api`;
+}
+
 const api = axios.create({
-  // Use the environment variable if deployed, otherwise fallback to local proxy
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  // Use normalized environment variable if deployed, otherwise fallback to local proxy
+  baseURL: rawBaseUrl,
 });
 
 // Interceptor to inject JWT token

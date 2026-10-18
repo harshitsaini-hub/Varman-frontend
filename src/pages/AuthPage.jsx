@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api';
 import toast from 'react-hot-toast';
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 
 const AuthPage = ({ initialMode = 'login' }) => {
+  const navigate = useNavigate();
   const { user, login, register } = useContext(AuthContext);
   const [mode, setMode] = useState(initialMode); // 'login' | 'register' | 'forgot'
   const [forgotStep, setForgotStep] = useState(1); // 1: request OTP, 2: verify OTP + new password
@@ -45,6 +46,16 @@ const AuthPage = ({ initialMode = 'login' }) => {
   const [successBanner, setSuccessBanner] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Synchronize internal mode if initialMode prop changes (e.g. routing between /login and /forgot-password)
+  useEffect(() => {
+    setMode(initialMode);
+    setError('');
+    setSuccessBanner('');
+    if (initialMode !== 'forgot') {
+      setForgotStep(1);
+    }
+  }, [initialMode]);
+
   // Countdown timer for OTP resend
   useEffect(() => {
     let timer;
@@ -64,8 +75,11 @@ const AuthPage = ({ initialMode = 'login' }) => {
     setMode(targetMode);
     setError('');
     setSuccessBanner('');
-    if (targetMode !== 'forgot') {
+    if (targetMode === 'forgot') {
+      navigate('/forgot-password', { replace: true });
+    } else {
       setForgotStep(1);
+      navigate('/login', { replace: true });
     }
   };
 
@@ -136,6 +150,13 @@ const AuthPage = ({ initialMode = 'login' }) => {
         setError('No account found with this email.');
       } else if (err.response?.status === 429) {
         setError(getErrorMessage(err, 'Too many requests. Please wait a moment before trying again.'));
+      } else if (err.response?.status === 503) {
+        const detail = err.response?.data?.detail;
+        if (detail && typeof detail === 'string') {
+          setError(`Service unavailable: ${detail}. In this environment, email delivery is unconfigured.`);
+        } else {
+          setError('Email service is not configured or temporarily unavailable on this deployment.');
+        }
       } else {
         setError(getErrorMessage(err, 'Failed to send verification code. Please try again.'));
       }
@@ -179,6 +200,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
       setPassword('');
       setForgotStep(1);
       setMode('login');
+      navigate('/login', { replace: true });
 
       const msg = res.data?.message || 'Password updated. Please log in with your new password.';
       setSuccessBanner(msg);
