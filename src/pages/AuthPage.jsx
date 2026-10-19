@@ -165,6 +165,31 @@ const AuthPage = ({ initialMode = 'login' }) => {
     }
   };
 
+  const handleVerifyOtp = async (e) => {
+    if (e) e.preventDefault();
+    setError('');
+    setSuccessBanner('');
+
+    if (!/^\d{6}$/.test(otp.trim())) {
+      setError('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/forgot-password/verify-otp', {
+        email: email.trim(),
+        otp: otp.trim(),
+      });
+      setForgotStep(3);
+      toast.success(res.data?.message || 'Verification code confirmed. Now choose a new password.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Invalid verification code. Please check your email and try again.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setError('');
@@ -259,7 +284,8 @@ const AuthPage = ({ initialMode = 'login' }) => {
             {mode === 'login' && 'Sign In to Varman Protection Console'}
             {mode === 'register' && 'Create a fresh account to protect your photos'}
             {mode === 'forgot' && forgotStep === 1 && 'Reset your password with a 6-digit email code'}
-            {mode === 'forgot' && forgotStep === 2 && 'Enter verification code and choose a new password'}
+            {mode === 'forgot' && forgotStep === 2 && 'Enter verification code to confirm your identity'}
+            {mode === 'forgot' && forgotStep === 3 && 'Choose a new password for your account'}
           </p>
 
           {/* Success Banner */}
@@ -421,9 +447,9 @@ const AuthPage = ({ initialMode = 'login' }) => {
             </form>
           )}
 
-          {/* ── FORGOT PASSWORD STEP 2: VERIFY OTP & RESET ───────────────── */}
+          {/* ── FORGOT PASSWORD STEP 2: VERIFY OTP ──────────────────────── */}
           {mode === 'forgot' && forgotStep === 2 && (
-            <form onSubmit={handleResetPassword} className="w-full space-y-4">
+            <form onSubmit={handleVerifyOtp} className="w-full space-y-4">
               {/* Vault Warning Banner */}
               <div className="w-full p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs flex items-start gap-2.5 leading-relaxed">
                 <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -433,6 +459,18 @@ const AuthPage = ({ initialMode = 'login' }) => {
                     Resetting your password will make any images previously stored in your encrypted vault inaccessible, because they are encrypted with your old password.
                   </p>
                 </div>
+              </div>
+
+              {/* Target Email Info */}
+              <div className="flex items-center justify-between text-xs px-1 text-slate-500">
+                <span className="truncate">Code sent to: <strong className="text-slate-700">{email}</strong></span>
+                <button
+                  type="button"
+                  onClick={() => setForgotStep(1)}
+                  className="text-emerald-600 hover:text-emerald-700 font-bold underline shrink-0 ml-2 cursor-pointer"
+                >
+                  Change
+                </button>
               </div>
 
               {/* OTP Field */}
@@ -450,7 +488,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
                       type="button"
                       onClick={() => handleRequestOtp()}
                       disabled={loading}
-                      className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 underline underline-offset-2 flex items-center gap-1"
+                      className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
                     >
                       <RefreshCw className="w-3 h-3" /> Resend Code
                     </button>
@@ -468,9 +506,58 @@ const AuthPage = ({ initialMode = 'login' }) => {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     required
+                    autoFocus
                   />
                   <KeyRound className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
                 </div>
+              </div>
+
+              <button
+                className="w-full bg-slate-900 text-white hover:bg-slate-800 font-bold py-3.5 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 mt-4 text-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                type="submit"
+                disabled={loading || otp.trim().length !== 6}
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                {loading ? 'Verifying Code...' : 'Verify Code'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => switchToMode('login')}
+                className="text-xs text-slate-500 hover:text-slate-800 font-semibold flex items-center justify-center gap-1.5 mx-auto mt-4 transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
+              </button>
+            </form>
+          )}
+
+          {/* ── FORGOT PASSWORD STEP 3: RESET PASSWORD ───────────────────── */}
+          {mode === 'forgot' && forgotStep === 3 && (
+            <form onSubmit={handleResetPassword} className="w-full space-y-4">
+              {/* Vault Warning Banner */}
+              <div className="w-full p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs flex items-start gap-2.5 leading-relaxed">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-amber-800">Encrypted Vault Warning</p>
+                  <p className="text-amber-700 mt-0.5">
+                    Resetting your password will make any images previously stored in your encrypted vault inaccessible, because they are encrypted with your old password.
+                  </p>
+                </div>
+              </div>
+
+              {/* Verified Code Indicator */}
+              <div className="w-full p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="font-medium text-[11px]">Code confirmed for <strong className="text-slate-800">{email}</strong></span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setForgotStep(2)}
+                  className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 underline cursor-pointer"
+                >
+                  Edit Code
+                </button>
               </div>
 
               {/* New Password */}
@@ -487,6 +574,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
+                    autoFocus
                   />
                   <button
                     type="button"
@@ -519,7 +607,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
               </div>
 
               <button
-                className="w-full bg-slate-900 text-white hover:bg-slate-800 font-bold py-3.5 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 mt-4 text-xs"
+                className="w-full bg-slate-900 text-white hover:bg-slate-800 font-bold py-3.5 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 mt-4 text-xs cursor-pointer"
                 type="submit"
                 disabled={loading}
               >
@@ -529,10 +617,10 @@ const AuthPage = ({ initialMode = 'login' }) => {
 
               <button
                 type="button"
-                onClick={() => switchToMode('login')}
+                onClick={() => setForgotStep(2)}
                 className="text-xs text-slate-500 hover:text-slate-800 font-semibold flex items-center justify-center gap-1.5 mx-auto mt-4 transition-colors"
               >
-                <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
+                <ArrowLeft className="w-3.5 h-3.5" /> Back to Verification Code
               </button>
             </form>
           )}
